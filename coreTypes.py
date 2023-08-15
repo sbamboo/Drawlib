@@ -7,66 +7,88 @@ stdpalette = getStdPalette()
 
 # [Functions]
 def pixelGroup_to_sprite(pixel_data, char="#", negChar=" "):
+    # Return empty
     if not pixel_data:
         return []
+    # Calculate minimum coords
     min_x = min(pixel[0] for pixel in pixel_data)
     max_x = max(pixel[0] for pixel in pixel_data)
     min_y = min(pixel[1] for pixel in pixel_data)
     max_y = max(pixel[1] for pixel in pixel_data)
+    # Get some atributes
     width = max_x - min_x + 1
     height = max_y - min_y + 1
+    # fill in negChar's in rows
     rows = [[negChar for _ in range(width)] for _ in range(height)]
+    # Add pixels by indexing
     for pixel in pixel_data:
         x, y = pixel
         rows[y - min_y][x - min_x] = char
+    # Put the rows in the result
     result = []
     for row in rows:
         result.append("".join(row))
+    # Create sprite and return it
     sprite = {"xPos":min_x, "yPos":min_y, "tx":result}
     return sprite
 
 def cmpxPixelGroup_to_sprite(pixel_data, negChar=" "):
+    # Sort out lowest values
     lowest_x = min(pixel['pos'][0] for pixel in pixel_data)
     lowest_y = min(pixel['pos'][1] for pixel in pixel_data)
+    # Normalize the coordinates to top-left=0,0
     normalized_pixels = [{'char': pixel['char'], 'pos': [pixel['pos'][0] - lowest_x, pixel['pos'][1] - lowest_y]} for pixel in pixel_data]
+    # Get some attributes
     width = max(pixel['pos'][0] for pixel in normalized_pixels) + 1
     height = max(pixel['pos'][1] for pixel in normalized_pixels) + 1
+    # Made a grid from negChars
     grid = [[negChar for _ in range(width)] for _ in range(height)]
+    # Fill in characters
     for pixel in normalized_pixels:
         x, y = pixel['pos']
         char = pixel['char']
         grid[y][x] = char
+    # Put the rows in the result
     result = [''.join(row) for row in grid]
+    # Create sprite and return it
     sprite = {"xPos":lowest_x, "yPos":lowest_y, "tx":result}
     return sprite
 
 def sprite_to_pixelGroup(sprite, char, exclusionChar):
+    # Get sprite data
     texture = sprite["tx"]
     xPos = sprite["xPos"]
     yPos = sprite["yPos"]
+    # Check each cell, if not exlChar add to pixelGroup
     pixels = []
     for y, row in enumerate(texture):
         for x, cell in enumerate(row):
             if cell != exclusionChar:
                 pixels.append([x+xPos, y+yPos])
+    # Return
     return char, pixels
 
 def sprite_to_cmpxPixelGroup(sprite, exclusionChar):
+    # Get sprite data
     texture = sprite["tx"]
     xPos = sprite["xPos"]
     yPos = sprite["yPos"]
     pixel_list = []
+    # Check each cell, if not exlChar add char and pos to cmpxPixelGroup
     for y, row in enumerate(texture):
         for x, char in enumerate(row):
             if char != exclusionChar:
                 pixel = {"char": char, "pos": [x+xPos, y+yPos]}
                 pixel_list.append(pixel)
+    # Return
     return pixel_list
 
 def render_sprite(sprite,ansi=None):
+    # Get sprite data
     texture = sprite["tx"]
     xPos = sprite["xPos"]
     yPos = sprite["yPos"]
+    # Use a modified sprite renderer
     print("\033[s") # Save cursorPos
     c = 0
     OposY = int(yPos)
@@ -81,10 +103,12 @@ def render_sprite(sprite,ansi=None):
     print("\033[u\033[2A") # Load cursorPos
 
 def render_pixelGroup(char,pixelGroup,ansi=None):
+    # Draw points
     for pixel in pixelGroup:
         draw_point(char,pixel[0],pixel[1],ansi=ansi)
 
 def render_cmpxPixelGroup(cmpxPixelGroup,ansi=None):
+    # Get points and draw them
     for pixel in cmpxPixelGroup:
         char = pixel["char"]
         pos = pixel["pos"]
@@ -112,10 +136,12 @@ def sprite_to_texture(sprite):
     return "\n".join(sprite["tx"])
 
 def render_texture(xPos=0,yPos=0,texture=str,ansi=None):
+    # Convert to sprite and render
     sprite = texture_to_sprite(texture,xPos,yPos)
     render_sprite(sprite,ansi=ansi)
 
 # [Classes]
+# Theese classes are to allow more methods and conversions to bee avaliable between the dataTypes using the functions above.
 class pixelGroup():
     def __init__(self,char=str,pixels=list, color=None,palette=None):
         self.char = char
@@ -124,7 +150,7 @@ class pixelGroup():
     def asPixelGroup(self):
         return self.char,self.pixels
     def asCmpxPixelGroup(self):
-        return pixelGroup_to_cmpxPixelGroup(self.pixels)
+        return pixelGroup_to_cmpxPixelGroup(self.char,self.pixels)
     def asSprite(self,backgroundChar=" "):
         return pixelGroup_to_sprite(self.pixels,self.char,backgroundChar)
     def asTexture(self,backgroundChar=" "):

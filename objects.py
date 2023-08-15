@@ -46,7 +46,7 @@ class drawlibObj():
         return self
 
 class temlateDrawlibObj(drawlibObj):
-    def __init__(self,char,color=None,palette=None,autoGenerate=False,autoDraw=False,**kwargs):
+    def __init__(self,char,color=None,palette=stdpalette,autoGenerate=False,autoDraw=False,**kwargs):
         super().__init__(char, color, palette)
         self.genData = kwargs
         if autoGenerate == True: self.make()
@@ -55,7 +55,7 @@ class temlateDrawlibObj(drawlibObj):
         raise Exception("templateDrawlibObj's must have a custom generate function defined, that also takes the needed points and arguments to set 'self.pixels' to a pixelGroup")
 
 class pointObj(drawlibObj):
-    def __init__(self,char,x1,y1,color=None,palette=None,autoGenerate=False,autoDraw=False):
+    def __init__(self,char,x1,y1,color=None,palette=stdpalette,autoGenerate=False,autoDraw=False):
         super().__init__(char, color, palette)
         self.genData = {
             "x1": x1,
@@ -67,7 +67,7 @@ class pointObj(drawlibObj):
         self.pixels = [[self.genData["x1"],self.genData["y1"]]]
 
 class lineObj(drawlibObj):
-    def __init__(self,char,x1,y1,x2,y2,color=None,palette=None,autoGenerate=False,autoDraw=False):
+    def __init__(self,char,x1,y1,x2,y2,color=None,palette=stdpalette,autoGenerate=False,autoDraw=False):
         super().__init__(char, color, palette)
         self.genData = {
             "x1": x1,
@@ -81,7 +81,7 @@ class lineObj(drawlibObj):
         self.pixels = beethams_line_algorithm(**self.genData)
 
 class triangleObj(drawlibObj):
-    def __init__(self,char,x1,y1,x2,y2,x3,y3,color=None,palette=None,autoGenerate=False,autoDraw=False):
+    def __init__(self,char,x1,y1,x2,y2,x3,y3,color=None,palette=stdpalette,autoGenerate=False,autoDraw=False):
         super().__init__(char, color, palette)
         self.drawData = {
             "x1": x1,
@@ -102,7 +102,7 @@ class triangleObj(drawlibObj):
         self.pixels.extend( beethams_line_algorithm(*p2,*p3) )
 
 class rectangleObj(drawlibObj):
-    def __init__(self,char,x1,y1,x2,y2,x3,y3,x4,y4,color=None,palette=None,autoGenerate=False,autoDraw=False):
+    def __init__(self,char,x1,y1,x2,y2,x3,y3,x4,y4,color=None,palette=stdpalette,autoGenerate=False,autoDraw=False):
         super().__init__(char, color, palette)
         self.genData = {
             "x1": x1,
@@ -127,7 +127,7 @@ class rectangleObj(drawlibObj):
         self.pixels.extend( beethams_line_algorithm(*p4,*p1) )
 
 class rectangleObj2(drawlibObj):
-    def __init__(self,char,c1,c2,color=None,palette=None,autoGenerate=False,autoDraw=False):
+    def __init__(self,char,c1,c2,color=None,palette=stdpalette,autoGenerate=False,autoDraw=False):
         super().__init__(char, color, palette)
         self.genData = {
             "c1": c1,
@@ -151,7 +151,7 @@ class rectangleObj2(drawlibObj):
         self.pixels = beethams_line_algorithm(**self.genData)
 
 class circleObj(drawlibObj):
-    def __init__(self, char, xM, yM, r, color=None,palette=None,autoGenerate=False,autoDraw=False):
+    def __init__(self, char, xM, yM, r, color=None,palette=stdpalette,autoGenerate=False,autoDraw=False):
         super().__init__(char, color, palette)
         self.genData = {
             "xM": xM,
@@ -164,7 +164,7 @@ class circleObj(drawlibObj):
         self.pixels = beethams_circle_algorithm(x_center=self.genData["xM"],y_center=self.genData["yM"],radius=self.genData["r"])
 
 class ellipseObj(drawlibObj):
-    def __init__(self, char, cX, cY, xRad, yRad, color=None,palette=None,autoGenerate=False,autoDraw=False):
+    def __init__(self, char, cX, cY, xRad, yRad, color=None,palette=stdpalette,autoGenerate=False,autoDraw=False):
         super().__init__(char, color, palette)
         self.genData = {
             "cX": cX,
@@ -178,7 +178,7 @@ class ellipseObj(drawlibObj):
         self.pixels = beethams_ellipse_algorithm(self.genData["cX"],self.genData["cY"],xRadius=self.genData["xRad"],yRadius=self.genData["yRad"])
 
 class quadBezierObj(drawlibObj):
-    def __init__(self, char, sX,sY, cX,cY, eX,eY, color=None,palette=None,autoGenerate=False,autoDraw=False):
+    def __init__(self, char, sX,sY, cX,cY, eX,eY, color=None,palette=stdpalette,autoGenerate=False,autoDraw=False):
         super().__init__(char, color, palette)
         self.genData = {
             "x0": sX,
@@ -194,7 +194,7 @@ class quadBezierObj(drawlibObj):
         self.pixels = generate_quadratic_bezier(**self.genData)
 
 class cubicBezierObj(drawlibObj):
-    def __init__(self, char, sX,sY, c1X,c1Y, c2X,c2Y, eX,eY, algorithm="step",modifier=None, color=None,palette=None,autoGenerate=False,autoDraw=False):
+    def __init__(self, char, sX,sY, c1X,c1Y, c2X,c2Y, eX,eY, algorithm="step",modifier=None, color=None,palette=stdpalette,autoGenerate=False,autoDraw=False):
         '''
         Alogrithm: "step" or "point"
         Modifier: With step algorithm, def: 0.01; With point algorithm, def: 100
@@ -218,7 +218,7 @@ class cubicBezierObj(drawlibObj):
         self.pixels = generate_cubic_bezier(**self.genData)
 
 class assetFileObj():
-    def __init__(self, filepath, color=None,palette=None,autoGenerate=False,autoDraw=False):
+    def __init__(self, filepath, color=None,palette=stdpalette,autoGenerate=False,autoDraw=False):
         self.filepath = filepath
         self.drawData = {
             "color": color,
@@ -264,7 +264,7 @@ class assetFileObj():
         return self
     
 class assetTexture():
-    def __init__(self, filepath, color=None,palette=None,autoGenerate=False,autoDraw=False):
+    def __init__(self, filepath, color=None,palette=stdpalette,autoGenerate=False,autoDraw=False):
         self.filepath = filepath
         self.drawData = {
             "color": color,
