@@ -3,8 +3,10 @@ from .coreTypes import *
 from .pointGroupAlgorithms import *
 from .assets import *
 
+# Get stdpalette
 stdpalette = getStdPalette()
 
+# Base-class to inherit from. Contains pixelGenerator and objectcreator
 class drawlibObj():
     def __init__(self,char,color=None,palette=stdpalette):
         self.char = char
@@ -27,6 +29,7 @@ class drawlibObj():
     def clear(self):
         self.pixels = None
         self.pixelGroup = None
+    # Conversion Methods
     def asPixelGroup(self):
         if self.pixelGroup == None: self.make()
         return self.pixelGroup.asPixelGroup()
@@ -40,20 +43,30 @@ class drawlibObj():
         if self.pixelGroup == None: self.make()
         sprite = self.pixelGroup.asSprite(backgroundChar)
         return sprite_to_texture(sprite)
+    # Draw
     def draw(self):
         if self.pixelGroup == None: self.make()
         self.pixelGroup.draw()
         return self
 
+# Template object for custom generator function to be added by user
+# template =  templateDrawlibObj(char="#")
+# def customGenerator(self,x1,y1):
+#     return [[x,y],[x,y],[x,y]]
+# template._customGenerator = customGenerator
+# template.draw()
 class temlateDrawlibObj(drawlibObj):
     def __init__(self,char,color=None,palette=stdpalette,autoGenerate=False,autoDraw=False,**kwargs):
         super().__init__(char, color, palette)
         self.genData = kwargs
         if autoGenerate == True: self.make()
         if autoDraw == True: self.draw()
-    def generate():
-        raise Exception("templateDrawlibObj's must have a custom generate function defined, that also takes the needed points and arguments to set 'self.pixels' to a pixelGroup")
+    def _customGenerator():
+        raise Exception("templateDrawlibObj's must have a custom generate function defined (the '_customGenerator' method), that also takes the needed points and arguments to set 'self.pixels' to a pixelGroup")
+    def generate(self,*args,**kwargs):
+        self.pixels = self._customGenerator(*args,**kwargs)
 
+# Drawlib objects:
 class pointObj(drawlibObj):
     def __init__(self,char,x1,y1,color=None,palette=stdpalette,autoGenerate=False,autoDraw=False):
         super().__init__(char, color, palette)
@@ -217,6 +230,8 @@ class cubicBezierObj(drawlibObj):
     def generate(self):
         self.pixels = generate_cubic_bezier(**self.genData)
 
+# Assets classes are not based on the same dataType as the baseClass above to they get their own classes (these are based on sprites)
+# But works the same.
 class assetFileObj():
     def __init__(self, filepath, color=None,palette=stdpalette,autoGenerate=False,autoDraw=False):
         self.filepath = filepath

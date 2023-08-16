@@ -142,6 +142,9 @@ def render_texture(xPos=0,yPos=0,texture=str,ansi=None):
 
 # [Classes]
 # Theese classes are to allow more methods and conversions to bee avaliable between the dataTypes using the functions above.
+# And have a few standard methods: asPixelGroup, asCmpxPixelGroup, asSprite, asTexture, draw
+# (These take arguments if the conversion/method is missing parameters)
+
 class pixelGroup():
     def __init__(self,char=str,pixels=list, color=None,palette=None):
         self.char = char
