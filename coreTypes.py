@@ -183,7 +183,7 @@ class pixelGroup():
     def asTexture(self,backgroundChar=" "):
         sprite = pixelGroup_to_sprite(self.pixels,self.char,backgroundChar)
         return sprite_to_texture(sprite)
-    def asPixelStrip(self,exclusionChar=" "):
+    def asPixelStrip(self,):
         cmpxPixelGroup = pixelGroup_to_cmpxPixelGroup(self.char,self.pixels)
         return cmpxPixelGroup_to_pixelStrip(cmpxPixelGroup)
     def draw(self):
@@ -202,7 +202,7 @@ class cmpxPixelGroup():
     def asTexture(self,backgroundChar=" "):
         sprite = cmpxPixelGroup_to_sprite(self.cmpxPixelGroup,backgroundChar)
         return sprite_to_texture(sprite)
-    def asPixelStrip(self,exclusionChar=" "):
+    def asPixelStrip(self):
         return cmpxPixelGroup_to_pixelStrip(self.cmpxPixelGroup)
     def draw(self):
         render_cmpxPixelGroup(self.cmpxPixelGroup,self.ansi)
@@ -244,7 +244,7 @@ class texture():
         return texture_to_sprite(self.texture,xPos,yPos)
     def asTexture(self):
         return self.texture
-    def asPixelStrip(self,exclusionChar=" "):
+    def asPixelStrip(self,xPos,yPos,exclusionChar=" "):
         sprite = texture_to_sprite(xPos=xPos,yPos=yPos,texture=self.texture)
         cmpxPixelGroup = sprite_to_cmpxPixelGroup(sprite, exclusionChar)
         return cmpxPixelGroup_to_pixelStrip(cmpxPixelGroup)
