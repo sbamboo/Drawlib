@@ -144,9 +144,18 @@ def render_listTexture(xPos=0,yPos=0,texture=list,ansi=None):
     sprite = listTexture_to_sprite(texture,xPos,yPos)
     render_sprite(sprite,ansi=ansi)
 
+def _join_with_delimiter(strings, delimiter):
+    # Join a list of strings with the given delimiter
+    return delimiter.join(strings)
+
+def _split_with_delimiter(string, delimiter):
+    # Split a string into a list using the given delimiter
+    return string.split(delimiter)
+
 def pixelStrip_to_cmpxPixelGroup(pixelStrip=dict):
     pixels = pixelStrip["po"]
-    chars = list(pixelStrip["st"])
+    #chars = list(pixelStrip["st"])
+    chars = _split_with_delimiter(pixelStrip["st"],"§;§")
     cmpxPixelGroup = []
     for i,char in enumerate(chars):
         cmpxPixelGroup.append( {"char":char,"pos":pixels[i]} )
@@ -154,10 +163,12 @@ def pixelStrip_to_cmpxPixelGroup(pixelStrip=dict):
 
 def cmpxPixelGroup_to_pixelStrip(cmpxPixelGroup):
     strip = ""
+    _strip = []
     poss = []
     for pGroup in cmpxPixelGroup:
-        strip += pGroup["char"]
+        _strip.append(pGroup["char"])
         poss.append(pGroup["pos"])
+    strip = _join_with_delimiter(_strip,"§;§")
     return {"st":strip,"po":poss}
 
 def render_pixelStrip(pixelStrip=dict,ansi=None):
@@ -244,7 +255,7 @@ class texture():
         return texture_to_sprite(self.texture,xPos,yPos)
     def asTexture(self):
         return self.texture
-    def asPixelStrip(self,xPos,yPos,exclusionChar=" "):
+    def asPixelStrip(self,xPos=0,yPos=0,exclusionChar=" "):
         sprite = texture_to_sprite(xPos=xPos,yPos=yPos,texture=self.texture)
         cmpxPixelGroup = sprite_to_cmpxPixelGroup(sprite, exclusionChar)
         return cmpxPixelGroup_to_pixelStrip(cmpxPixelGroup)
