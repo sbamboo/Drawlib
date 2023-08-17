@@ -12,4 +12,3 @@ hex/rgb to palette
 make assets.drawlib_asset_palette use colorings palette system
 normalise the use of xPos yPos naming scheme everywhere and cX,cY or xM,yM not both
 also normlise the caping of x,y and isPoint for points/tuples/list
-strip dataType: {"s":"###","c":[[x,y],[x,y],[x,y]]}

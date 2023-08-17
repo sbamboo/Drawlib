@@ -129,7 +129,7 @@ def cmpxPixelGroup_to_pixelGroup(char,cmpxPixelGroup):
 
 def texture_to_sprite(texture,xPos=0,yPos=0):
     return {"xPos":xPos, "yPos":yPos, "tx":texture.split("\n")}
-def rawtexture_to_sprite(texture=list,xPos=0,yPos=0):
+def listTexture_to_sprite(texture=list,xPos=0,yPos=0):
     return {"xPos":xPos, "yPos":yPos, "tx":texture}
 
 def sprite_to_texture(sprite):
@@ -139,6 +139,30 @@ def render_texture(xPos=0,yPos=0,texture=str,ansi=None):
     # Convert to sprite and render
     sprite = texture_to_sprite(texture,xPos,yPos)
     render_sprite(sprite,ansi=ansi)
+def render_listTexture(xPos=0,yPos=0,texture=list,ansi=None):
+    # Convert to sprite and render
+    sprite = listTexture_to_sprite(texture,xPos,yPos)
+    render_sprite(sprite,ansi=ansi)
+
+def pixelStrip_to_cmpxPixelGroup(pixelStrip=dict):
+    pixels = pixelStrip["po"]
+    chars = list(pixelStrip["st"])
+    cmpxPixelGroup = []
+    for i,char in enumerate(chars):
+        cmpxPixelGroup.append( {"char":char,"pos":pixels[i]} )
+    return cmpxPixelGroup
+
+def cmpxPixelGroup_to_pixelStrip(cmpxPixelGroup):
+    strip = ""
+    poss = []
+    for pGroup in cmpxPixelGroup:
+        strip += pGroup["char"]
+        poss.append(pGroup["pos"])
+    return {"st":strip,"po":poss}
+
+def render_pixelStrip(pixelStrip=dict,ansi=None):
+    cmpxPixelGroup = pixelStrip_to_cmpxPixelGroup(pixelStrip)
+    render_cmpxPixelGroup(cmpxPixelGroup,ansi=ansi)
 
 # [Classes]
 # Theese classes are to allow more methods and conversions to bee avaliable between the dataTypes using the functions above.
@@ -159,6 +183,9 @@ class pixelGroup():
     def asTexture(self,backgroundChar=" "):
         sprite = pixelGroup_to_sprite(self.pixels,self.char,backgroundChar)
         return sprite_to_texture(sprite)
+    def asPixelStrip(self,exclusionChar=" "):
+        cmpxPixelGroup = pixelGroup_to_cmpxPixelGroup(self.char,self.pixels)
+        return cmpxPixelGroup_to_pixelStrip(cmpxPixelGroup)
     def draw(self):
         render_pixelGroup(self.char,self.pixels,self.ansi)
     
@@ -175,6 +202,8 @@ class cmpxPixelGroup():
     def asTexture(self,backgroundChar=" "):
         sprite = cmpxPixelGroup_to_sprite(self.cmpxPixelGroup,backgroundChar)
         return sprite_to_texture(sprite)
+    def asPixelStrip(self,exclusionChar=" "):
+        return cmpxPixelGroup_to_pixelStrip(self.cmpxPixelGroup)
     def draw(self):
         render_cmpxPixelGroup(self.cmpxPixelGroup,self.ansi)
 
@@ -187,14 +216,17 @@ class sprite():
                 raise ValueError("When not defining a sprite, al three variables must be defined: xPos, yPos, spriteTexture")
             self.sprite = {"xPos":xPos,"yPos":yPos,"tx":spriteTexture}
         self.ansi = autoNoneColor(color,palette)
-    def asPixelGroup(self,char,exclusionChar):
+    def asPixelGroup(self,char,exclusionChar=" "):
         return sprite_to_pixelGroup(self.sprite,char,exclusionChar)
-    def asCmpxPixelGroup(self,exclusionChar):
+    def asCmpxPixelGroup(self,exclusionChar=" "):
         return sprite_to_cmpxPixelGroup(self.sprite,exclusionChar)
     def asSprite(self):
         return self.sprite
     def asTexture(self):
         return sprite_to_texture(self.sprite)
+    def asPixelStrip(self,exclusionChar=" "):
+        cmpxPixelGroup = sprite_to_cmpxPixelGroup(self.sprite, exclusionChar)
+        return cmpxPixelGroup_to_pixelStrip(cmpxPixelGroup)
     def draw(self):
         render_sprite(self.sprite,self.ansi)
 
@@ -202,18 +234,49 @@ class texture():
     def __init__(self,texture=str, color=None,palette=None):
         self.texture = texture
         self.ansi = autoNoneColor(color,palette)
-    def asPixelGroup(self,char=str,xPos=0,yPos=0,exclusionChar=str):
+    def asPixelGroup(self,char=str,xPos=0,yPos=0,exclusionChar=" "):
         sprite = texture_to_sprite(xPos=xPos,yPos=yPos,texture=self.texture)
         return sprite_to_pixelGroup(sprite,char,exclusionChar)
-    def asCmpxPixelGroup(self,char=str,xPos=0,yPos=0,exclusionChar=str):
+    def asCmpxPixelGroup(self,char=str,xPos=0,yPos=0,exclusionChar=" "):
         sprite = texture_to_sprite(xPos=xPos,yPos=yPos,texture=self.texture)
         return sprite_to_cmpxPixelGroup(sprite,char,exclusionChar)
-    def asPixelGroup(self,xPos=0,yPos=0,exclusionChar=str):
-        sprite = texture_to_sprite(xPos=xPos,yPos=yPos,texture=self.texture)
-        return sprite_to_cmpxPixelGroup(sprite,exclusionChar)
     def asSprite(self,xPos=0,yPos=0):
         return texture_to_sprite(self.texture,xPos,yPos)
     def asTexture(self):
         return self.texture
+    def asPixelStrip(self,exclusionChar=" "):
+        sprite = texture_to_sprite(xPos=xPos,yPos=yPos,texture=self.texture)
+        cmpxPixelGroup = sprite_to_cmpxPixelGroup(sprite, exclusionChar)
+        return cmpxPixelGroup_to_pixelStrip(cmpxPixelGroup)
     def draw(self,xPos=0,yPos=0):
         render_texture(xPos,yPos,self.texture,self.ansi)
+
+class pixelStrip():
+    def __init__(self,strip=None,positions=None,pixelStrip=None, color=None,palette=None):
+        if strip != None:
+            if isinstance(strip, str) != True: raise ValueError("Strip must be a string!")
+        if positions != None:
+            if isinstance(positions, list) != True: raise ValueError("Positions must be a list!")
+        if pixelStrip != None:
+            if isinstance(pixelStrip, list) != True: raise ValueError("PixelStrip must be a dict!")
+        self.strip = strip
+        self.positions = positions
+        if pixelStrip != None:
+            self.strip = pixelStrip["st"]
+            self.positions = pixelStrip["po"]
+        self.ansi = autoNoneColor(color,palette)
+    def asPixelGroup(self):
+        return self.positions
+    def asCmpxPixelGroup(self):
+        pixelStrip_to_cmpxPixelGroup({"st":self.strip,"po":self.positions})
+    def asSprite(self,exclusionChar=" "):
+        cmpxPixelGroup = pixelStrip_to_cmpxPixelGroup({"st":self.strip,"po":self.positions})
+        return cmpxPixelGroup_to_sprite(cmpxPixelGroup,exclusionChar)
+    def asTexture(self,exclusionChar=" "):
+        cmpxPixelGroup = pixelStrip_to_cmpxPixelGroup({"st":self.strip,"po":self.positions})
+        sprite = cmpxPixelGroup_to_sprite(cmpxPixelGroup,exclusionChar)
+        return sprite_to_texture(sprite)
+    def asPixelStrip(self):
+        return {"st":self.strip,"po":self.positions}
+    def draw(self):
+        render_pixelStrip(pixelStrip,self.ansi)
