@@ -41,6 +41,7 @@ class asciiImage():
         if yPos == None: raise ValueError("yPos not defined!")
         if self.texture == None: self._getTexture()
         render_listTexture(xPos,yPos,texture)
+        return self
 
 class boxImage():
     def __init__(self,imagePath=str,mode="foreground",char=None,monochrome=False,width=None,height=None,resampling="lanczos",textureCodec=None,xPos=None,yPos=None):
@@ -79,3 +80,4 @@ class boxImage():
         if yPos == None: raise ValueError("yPos not defined!")
         if self.texture == None: self._getTexture()
         render_listTexture(xPos,yPos,self.texture)
+        return self
