@@ -1,4 +1,5 @@
 # Author: Simon Kalmi Claesson
+# Version: 2.0
 
 # [Imports]
 import os
@@ -7,20 +8,6 @@ import sys
 import subprocess
 import argparse
 from PIL import Image
-
-# [Wrapper toImport function]
-def wrapperToImport(debug=False, *args, **kwargs):
-    args_str = " ".join(args)
-    kwargs_str = " ".join([f"-{key} {value}" for key, value in kwargs.items()])
-    command = f"{sys.executable} {__file__} {args_str} {kwargs_str}"
-    if debug == True: print(f"Executing: {command}")
-    try:
-        return_code = subprocess.call(command, shell=True)
-        if return_code != 0:
-            if debug == True: print(f"Child process returned non-zero exit code: {return_code}")
-    except Exception as e:
-        if debug == True: print(f"An error occurred: {e}")
-
 
 # [Config]
 baseAsciiPalette = ['Ñ', '@', '#', 'W', '9', '8', '7', '6', '5', '4', '3', '2', '1', '0', '!', 'a', 'b', 'c', ';', ':', '+', '=', '-', ',', '.', '_']
@@ -35,7 +22,7 @@ validResamplingMethods = ["NEAREST", "BOX", "BILINEAR", "HAMMING", "BICUBIC", "L
 def stringPrepper(char=str,hexcode=str,background=bool,mode="pythonAnsi"):
     if mode.lower() == "pythonansi":
         # Python ansicode output
-        string = f"{hexToAnsi(hexcode,background)}{char}\033[0m"
+        string = f"{hexToAnsi(hexcode,background)}{char}"
     elif mode.lower() == "pansies":
         # Powershell PANSIES color output
         string = '${fg:#' + hexcode + '}' + char + '${fg:clear}'
@@ -53,6 +40,16 @@ def hexToAnsi(hexColor, background=False):
     prefix = "\033[48;2;" if background else "\033[38;2;"
     r, g, b = int(hexColor[0:2], 16), int(hexColor[2:4], 16), int(hexColor[4:6], 16)
     return f"{prefix}{r};{g};{b}m"
+
+def hexToMonochromeHex(hex_color):
+    # Calculate the average of R, G, and B components
+    r = int(hex_color[0:2], 16)
+    g = int(hex_color[2:4], 16)
+    b = int(hex_color[4:6], 16)
+    avg = (r + g + b) // 3
+    # Convert the average to a hexadecimal value
+    monochrome_hex = "{:02X}{:02X}{:02X}".format(avg, avg, avg)
+    return monochrome_hex
 
 def unicodeToHtmlDecimal(inputString):
     def replaceUnicode(match):
@@ -72,202 +69,264 @@ def unicodeToPwshUnicode(inputString):
     convertedString = re.sub(unicodeEscapePattern, replaceUnicode, inputString)
     return convertedString
 
-# [Arguments]
-# Parse command line arguments
-parser = argparse.ArgumentParser(description="Image to text renderer")
-parser.add_argument("-image", type=str, help="Path to the image to render")
-parser.add_argument("-type", type=str, default="ascii", help="Type of rendering (ascii or box)")
-parser.add_argument("-mode", type=str, help="Rendering mode (foreground, background, standard, color)")
-parser.add_argument("-char", type=str, help="Characters for rendering")
-parser.add_argument("-pc", action="store_true", help="Use PerChar mapping")
-parser.add_argument("-method", type=str, help="Mapping method (lum or alpha)")
-parser.add_argument("-invert", action="store_true", help="Invert character mapping")
-parser.add_argument("-monochrome", action="store_true", help="Use monochrome gradient")
-parser.add_argument("-width", type=int, help="Width for image scaling")
-parser.add_argument("-height", type=int, help="Height for image scaling")
-parser.add_argument("-resampling", type=str, default="lanczos", help="Resampling method for image scaling (lanczos, nearest, etc.)")
-parser.add_argument("-asTexture", action="store_true", help="Output the ASCII as a drawlib Texture")
-parser.add_argument("-colorMode", type=str, default="pythonAnsi", help="Colormode to use (pythonAnsi,pansies)")
-parser.add_argument("-textureCodec", type=str, help="Codec to use in the text (utf, cp1252, etc.)")
-args = parser.parse_args()
+# [Main Function]
+def ImageRenderer(image=str,type="ascii",mode=None,char=None,pc=False,method=None,invert=False,monochrome=False,width=None,height=None,resampling="lanczos",asTexture=False,colorMode="pythonAnsi",textureCodec=None):
+    types = {
+        "image":str,
+        "type":str,
+        "mode":str,
+        "char":str,
+        "pc":bool,
+        "method":str,
+        "invert":bool,
+        "monochrome":bool,
+        "width":int,
+        "height":int,
+        "resampling":str,
+        "asTexture":bool,
+        "colorMode":str,
+        "textureCodec":str
+    }
+    for _var,_type in types.items():
+        if locals()[_var] != None:
+            if isinstance(locals()[_var],_type) != True:
+                raise ValueError(f"{_var} must be of type {str(_type)}")
 
-# [Check Image]
-if args.image != None:
-    if os.path.exists(args.image) != True:
-        raise FileNotFoundError(f"Image file not found: '{args.image}'")
+    # [Check Image]
+    if image != None:
+        if os.path.exists(image) != True:
+            raise FileNotFoundError(f"Image file not found: '{image}'")
 
-    # [Lowering some arguments]
-    if isinstance(args.type,str) == True: args.type = args.type.lower()
-    if isinstance(args.mode,str) == True: args.mode = args.mode.lower()
-    if isinstance(args.method,str) == True: args.method = args.method.lower()
-    if isinstance(args.colorMode,str) == True: args.colorMode = args.colorMode.lower()
-    if isinstance(args.textureCodec,str) == True: args.textureCodec = args.textureCodec.lower()
+        # [Lowering some arguments]
+        if isinstance(type,str) == True: type = type.lower()
+        if isinstance(mode,str) == True: mode = mode.lower()
+        if isinstance(method,str) == True: method = method.lower()
+        if isinstance(colorMode,str) == True: colorMode = colorMode.lower()
+        if isinstance(textureCodec,str) == True: textureCodec = textureCodec.lower()
 
-    # [Set Default Values]
-    # Set default rendering mode based on type
-    if args.mode is None:
-        if args.type == "ascii":
-            args.mode = "standard"
+        # [Set Default Values]
+        # Set default rendering mode based on type
+        if mode is None:
+            if type == "ascii":
+                mode = "standard"
+            else:
+                mode = "foreground"
+
+        # Set default mapping method
+        if method is None:
+            method = "lum"
+
+        # Set default characters for rendering based on type and mode
+        if char is None:
+            if type == "ascii":
+                char = baseAsciiPalette
+            elif type == "box":
+                if mode in acceptableFgKeywords:
+                    char = baseBoxCharFg
+                elif mode in acceptableBgKeywords:
+                    char = baseBoxCharBg
         else:
-            args.mode = "foreground"
+            if type == "ascii":
+                # Parse charSet commas
+                if ",,," in char.strip(" ") or ",," in char.strip(" "):
+                    char = char.strip(" ")
+                    char = char.replace(",,,",",\u0000,")
+                    if char.endswith(",,"):
+                        char = char[:len(char)-2] + ",\u0000"
+                    if char.startswith(",,"):
+                        char = "\u0000," + char[2:]
+                # Split
+                char = char.split(",")
+                # Remove temp chars
+                while "\u0000" in char:
+                    i = char.index("\u0000")
+                    char[i] = ","
 
-    # Set default mapping method
-    if args.method is None:
-        args.method = "lum"
+        # [Load image and resize if needed]
+        # Validate resampling method
+        if resampling.upper() not in validResamplingMethods:
+            raise ValueError(f"InvalidResampler: '{resampling}' is not a valid resampling method. Supported methods: {', '.join(validResamplingMethods)}")
 
-    # Set default characters for rendering based on type and mode
-    if args.char is None:
-        if args.type == "ascii":
-            args.char = baseAsciiPalette
-        elif args.type == "box":
-            if args.mode in acceptableFgKeywords:
-                args.char = baseBoxCharFg
-            elif args.mode in acceptableBgKeywords:
-                args.char = baseBoxCharBg
-    else:
-        if args.type == "ascii":
-            # Parse charSet commas
-            if ",,," in args.char.strip(" ") or ",," in args.char.strip(" "):
-                args.char = args.char.strip(" ")
-                args.char = args.char.replace(",,,",",\u0000,")
-                if args.char.endswith(",,"):
-                    args.char = args.char[:len(args.char)-2] + ",\u0000"
-                if args.char.startswith(",,"):
-                    args.char = "\u0000," + args.char[2:]
-            # Split
-            args.char = args.char.split(",")
-            # Remove temp chars
-            while "\u0000" in args.char:
-                i = args.char.index("\u0000")
-                args.char[i] = ","
+        # Open the image
+        image = Image.open(image)
 
-    # [Load image and resize if needed]
-    # Validate resampling method
-    if args.resampling.upper() not in validResamplingMethods:
-        raise ValueError(f"InvalidResampler: '{args.resampling}' is not a valid resampling method. Supported methods: {', '.join(validResamplingMethods)}")
+        # Scale the image if width and/or height arguments are provided
+        if width or height:
+            if width and not height:
+                aspectRatio = float(image.height) / float(image.width)
+                newWidth = width
+                newHeight = int(width * aspectRatio)
+            elif height and not width:
+                aspectRatio = float(image.width) / float(image.height)
+                newWidth = int(height * aspectRatio)
+                newHeight = height
+            else:
+                newWidth = width
+                newHeight = height
+            resampling_method = getattr(Image, resampling.upper(), Image.LANCZOS)
+            image = image.resize((newWidth, newHeight), resampling_method)
 
-    # Open the image
-    image = Image.open(args.image)
+        # [Handle character mapping]
+        # Invert character mapping if requested
+        if invert:
+            char = char[::-1]
 
-    # Scale the image if width and/or height arguments are provided
-    if args.width or args.height:
-        if args.width and not args.height:
-            aspectRatio = float(image.height) / float(image.width)
-            newWidth = args.width
-            newHeight = int(args.width * aspectRatio)
-        elif args.height and not args.width:
-            aspectRatio = float(image.width) / float(image.height)
-            newWidth = int(args.height * aspectRatio)
-            newHeight = args.height
-        else:
-            newWidth = args.width
-            newHeight = args.height
-        resampling_method = getattr(Image, args.resampling.upper(), Image.LANCZOS)
-        image = image.resize((newWidth, newHeight), resampling_method)
+        # Reverse character array if using alpha method in ASCII mode
+        if method == "alpha" and type == "ascii":
+            char = char[::-1]
 
-    # [Handle character mapping]
-    # Invert character mapping if requested
-    if args.invert:
-        args.char = args.char[::-1]
-
-    # Reverse character array if using alpha method in ASCII mode
-    if args.method == "alpha" and args.type == "ascii":
-        args.char = args.char[::-1]
-
-    # [Render / Assemble Texture]
-    # Loop through image pixels and render
-    if args.asTexture:
+        # [Render / Assemble Texture]
+        # Loop through image pixels and render
         outTexture = []
-    for y in range(image.height):
-        line = ""
-        for x in range(image.width):
-            pixel = image.getpixel((x, y))
-            # ASCII
-            if args.type == "ascii":
-                # STANDARD
-                if args.mode == "standard":
-                    # NOPC
-                    if not args.pc:
-                        #LUM
-                        if args.method == "lum":
-                            charIndex = int(pixelAverage(pixel) / len(args.char))
-                        # ALPHA
-                        elif args.method == "alpha":
-                            charIndex = int(pixel[3] / len(args.char))
-                        char = args.char[charIndex]
-                    #PC (PerChar mapping)
-                    else:
-                        charIndex = int(pixelAverage(pixel) / (255 / len(args.char)))
-                        char = args.char[charIndex]
-                # COLOR
-                elif args.mode == "color":
-                    # NOPC
-                    if not args.pc:
-                        #LUM
-                        if args.method == "lum":
-                            charIndex = int(pixelAverage(pixel) / len(args.char))
-                        # ALPHA
-                        elif args.method == "alpha":
-                            charIndex = int(pixel[3] / len(args.char))
-                        #char = f"{hexToAnsi(pixelToHexColor(pixel))}{args.char[charIndex]}\033[0m"
-                        char = stringPrepper(args.char[charIndex],pixelToHexColor(pixel),False,args.colorMode)
-                    #PC (PerChar mapping)
-                    else:
-                        charIndex = int(pixelAverage(pixel) / (255 / len(args.char)))
-                        #char = f"{hexToAnsi(pixelToHexColor(pixel))}{args.char[charIndex]}\033[0m"
-                        char = stringPrepper(args.char[charIndex],pixelToHexColor(pixel),False,args.colorMode)
-                line += char
-            # BOX
-            elif args.type == "box":
-                # FOREGROUND
-                if args.mode == "foreground":
-                    # MONO
-                    if args.monochrome:
-                        charIndex = int(pixelAverage(pixel) / (255 / len(monoGradient)))
-                        #char = f"{hexToAnsi(monoGradient[charIndex])}{args.char}\033[0m"
-                        char = stringPrepper(args.char,monoGradient[charIndex],False,args.colorMode)
-                    # FullColor
-                    else:
-                        #char = f"{hexToAnsi(pixelToHexColor(pixel))}{args.char}\033[0m"
-                        char = stringPrepper(args.char,pixelToHexColor(pixel),False,args.colorMode)
-                # BACKGROUND
-                elif args.mode == "background":
-                    # MONO
-                    if args.monochrome:
-                        charIndex = int(pixelAverage(pixel) / (255 / len(monoGradient)))
-                        #char = f"{hexToAnsi(monoGradient[charIndex], background=True)}{args.char}\033[0m"
-                        char = stringPrepper(args.char,monoGradient[charIndex],True,args.colorMode)
-                    # FullColor
-                    else:
-                        #char = f"{hexToAnsi(pixelToHexColor(pixel), background=True)}{args.char}\033[0m"
-                        char = stringPrepper(args.char,pixelToHexColor(pixel),True,args.colorMode)
-                line += char
-        # Print or append to texture
-        if args.asTexture:
-            outTexture.append(line)
-        else:
-            print(line)
+        charset = char
+        for y in range(image.height):
+            line = ""
+            for x in range(image.width):
+                pixel = image.getpixel((x, y))
+                # ASCII
+                if type == "ascii":
+                    # STANDARD
+                    if mode == "standard":
+                        # NOPC
+                        if not pc:
+                            #LUM
+                            if method == "lum":
+                                charIndex = int(pixelAverage(pixel) / len(charset))
+                            # ALPHA
+                            elif method == "alpha":
+                                charIndex = int(pixel[3] / len(charset))
+                            char = charset[charIndex]
+                        #PC (PerChar mapping)
+                        else:
+                            #LUM
+                            if method == "lum":
+                                charIndex = int(pixelAverage(pixel) / (255 / len(charset)))
+                            # ALPHA
+                            elif method == "alpha":
+                                charIndex = int(pixel[3] / (255 / len(charset)))
+                            char = charset[charIndex]
+                    # COLOR
+                    elif mode == "color":
+                        # NOPC
+                        if not pc:
+                            #LUM
+                            if method == "lum":
+                                charIndex = int(pixelAverage(pixel) / len(charset))
+                            # ALPHA
+                            elif method == "alpha":
+                                charIndex = int(pixel[3] / len(charset))
+                        #PC (PerChar mapping)
+                        else:
+                            #LUM
+                            if method == "lum":
+                                charIndex = int(pixelAverage(pixel) / (255 / len(charset)))
+                            # ALPHA
+                            elif method == "alpha":
+                                charIndex = int(pixel[3] / (255 / len(charset)))
+                        # Get char
+                        if monochrome:
+                            _hex = hexToMonochromeHex(pixelToHexColor(pixel))
+                            char = stringPrepper(charset[charIndex],_hex,False,colorMode)
+                        else:
+                            char = stringPrepper(charset[charIndex],pixelToHexColor(pixel),False,colorMode)
+                    line += char
+                # BOX
+                elif type == "box":
+                    # FOREGROUND
+                    if mode == "foreground":
+                        # MONO
+                        if monochrome:
+                            charIndex = int(pixelAverage(pixel) / (255 / len(monoGradient)))
+                            #char = f"{hexToAnsi(monoGradient[charIndex])}{char}\033[0m"
+                            char = stringPrepper(charset,monoGradient[charIndex],False,colorMode)
+                        # FullColor
+                        else:
+                            #char = f"{hexToAnsi(pixelToHexColor(pixel))}{char}\033[0m"
+                            char = stringPrepper(charset,pixelToHexColor(pixel),False,colorMode)
+                    # BACKGROUND
+                    elif mode == "background":
+                        # MONO
+                        if monochrome:
+                            charIndex = int(pixelAverage(pixel) / (255 / len(monoGradient)))
+                            #char = f"{hexToAnsi(monoGradient[charIndex], background=True)}{char}\033[0m"
+                            char = stringPrepper(charset,monoGradient[charIndex],True,colorMode)
+                        # FullColor
+                        else:
+                            #char = f"{hexToAnsi(pixelToHexColor(pixel), background=True)}{char}\033[0m"
+                            char = stringPrepper(charset,pixelToHexColor(pixel),True,colorMode)
+                    line += char
+            # Print or append to texture
+            outTexture.append(line+"\033[0m")
 
-    # Return texture if requested
-    if args.asTexture:
         # Handle codec
-        if args.textureCodec != None:
+        newTexture = []
+        if textureCodec != None:
             # Carry out action
-            for i,line in enumerate(outTexture):
+            for line in outTexture:
                 backslashers = ["uni","html","unipwsh"]
                 backslash = False
-                spec = args.textureCodec.split(":")
-                if ":" in args.textureCodec and spec[0] in backslashers:
-                    args.textureCodec = args.textureCodec.replace(f"{spec[0]}:","")
+                spec = textureCodec.split(":")
+                if ":" in textureCodec and spec[0] in backslashers:
+                    textureCodec = textureCodec.replace(f"{spec[0]}:","")
                     # unicode
-                    outTexture[i] = line.encode(args.textureCodec, 'backslashreplace').decode(args.textureCodec)
+                    newTexture.append( line.encode(textureCodec, 'backslashreplace').decode(textureCodec) )
                     # html
                     if spec[0] == "html":
-                        outTexture[i] = unicodeToHtmlDecimal(outTexture[i])
+                        newTexture.append( unicodeToHtmlDecimal(line) )
                     # unipwsh (powershell formatted unicode)
                     elif spec[0] == "unipwsh":
-                        outTexture[i] = unicodeToPwshUnicode(outTexture[i])
+                        newTexture.append( unicodeToPwshUnicode(line) )
                 else:
-                    outTexture[i] = line.encode(args.textureCodec, 'replace').decode(args.textureCodec)
-        # Print
-        print(outTexture)
+                    newTexture.append( line.encode(textureCodec, 'replace').decode(textureCodec) )
+        else:
+            newTexture = outTexture.copy()
+        # Return texture if requested
+        if asTexture:
+            return newTexture
+        else:
+            print("\n".join(newTexture))
+
+# CLI
+if __name__ == "__main__":
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(description="Image to text renderer")
+    parser.add_argument("-image", help="Path to the image to render")
+    parser.add_argument("-type", default="ascii", help="Type of rendering (ascii or box)")
+    parser.add_argument("-mode", help="Rendering mode (foreground, background, standard, color)")
+    parser.add_argument("-char", help="Characters for rendering")
+    parser.add_argument("-pc", action="store_true", help="Use PerChar mapping")
+    parser.add_argument("-method", help="Mapping method (lum or alpha)")
+    parser.add_argument("-invert", action="store_true", help="Invert character mapping")
+    parser.add_argument("-monochrome", action="store_true", help="Use monochrome gradient")
+    parser.add_argument("-width", type=int, help="Width for image scaling")
+    parser.add_argument("-height", type=int, help="Height for image scaling")
+    parser.add_argument("-resampling", default="lanczos", help="Resampling method for image scaling (lanczos, nearest, etc.)")
+    parser.add_argument("-asTexture", action="store_true", help="Output the ASCII as a drawlib Texture")
+    parser.add_argument("-colorMode", default="pythonAnsi", help="Colormode to use (pythonAnsi,pansies)")
+    parser.add_argument("-textureCodec", help="Codec to use in the text (utf, cp1252, etc.)")
+    args = parser.parse_args()
+    # Execute
+    returnValue = None
+    mapping = {
+        "image":args.image,
+        "type":args.type,
+        "mode":args.mode,
+        "char":args.char,
+        "pc":args.pc,
+        "method":args.method,
+        "invert":args.invert,
+        "monochrome":args.monochrome,
+        "width":args.width,
+        "height":args.height,
+        "resampling":args.resampling,
+        "asTexture":args.asTexture,
+        "colorMode":args.colorMode,
+        "textureCodec":args.textureCodec
+    }
+    newMapping = dict()
+    for key,value in mapping.items():
+        if value != None:
+            newMapping[key] = value
+    returnValue = ImageRenderer(**mapping)
+    if returnValue != None:
+        print(returnValue)
