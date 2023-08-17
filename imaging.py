@@ -1,23 +1,6 @@
 from .imageRenderer.ImageRenderer_Beta import ImageRenderer
 from .coreTypes import render_texture
 
-types = {
-        "image":str,
-        "type":str,
-        "mode":str,
-        "char":str,
-        "pc":bool,
-        "method":str,
-        "invert":bool,
-        "monochrome":bool,
-        "width":int,
-        "height":int,
-        "resampling":str,
-        "asTexture":bool,
-        "colorMode":str,
-        "textureCodec":str
-    }
-
 class asciiImage():
     def __init__(self,imagePath=str,mode="standard",char=None,pc=False,method="lum",invert=False,monochrome=False,widht=None,height=None,resampling="lanczos",textureCodec=None):
         # Req Arguments
