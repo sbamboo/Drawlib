@@ -2,51 +2,64 @@ from .coloring import autoNoneColor,getStdPalette
 from .coreTypes import *
 from .pointGroupAlgorithms import *
 from .assets import *
+from .generators import baseGenerator
 
 # Get stdpalette
 stdpalette = getStdPalette()
 
 # Base-class to inherit from. Contains pixelGenerator and objectcreator
 class drawlibObj():
-    def __init__(self,char,color=None,palette=stdpalette):
-        self.char = char
+    def __init__(self,charset,charGenFunc,color=None,palette=stdpalette):
+        if type(charset) == str:
+            if ";;" in charset:
+                self.charset = charset.split(";;")
+            else:
+                self.charset = list(charset)
+        elif type(charset) == list:
+            self.charset = charset
+        else:
+            raise ValueError("Charset must either be string or list!")
+        self.charGenFunc = charGenFunc
         self.genData = {} # SHOULD BE FILLED IN BY SUBCLASS
         self.drawData = {
             "color": color,
             "palette": palette
         }
         self.pixels = None
-        self.pixelGroup = None
+        self.splitPixelGroup = None
     def generate(self):
         pass # THIS SHOULD BE REPLACED IN SUBCLASS
     def objectify(self):
         color = self.drawData["color"]
         palette = self.drawData["palette"]
-        self.pixelGroup = pixelGroup(self.char,self.pixels,color,palette)
+        chars = self.charGenFunc(self.charset,self.pixels)
+        self.splitPixelGroup = splitPixelGroup(chars=chars,positions=self.pixels,color=color,palette=palette)
     def make(self):
         if self.pixels == None: self.generate()
-        if self.pixelGroup == None: self.objectify()
+        if self.splitPixelGroup == None: self.objectify()
     def clear(self):
         self.pixels = None
-        self.pixelGroup = None
+        self.splitPixelGroup = None
     # Conversion Methods
     def asPixelGroup(self):
-        if self.pixelGroup == None: self.make()
-        return self.pixelGroup.asPixelGroup()
+        if self.splitPixelGroup == None: self.make()
+        return self.splitPixelGroup.asPixelGroup()
     def asCmpxPixelGroup(self):
-        if self.pixelGroup == None: self.make()
-        return self.pixelGroup.asCmpxPixelGroup()
+        if self.splitPixelGroup == None: self.make()
+        return self.splitPixelGroup.asCmpxPixelGroup()
     def asSprite(self,backgroundChar=" "):
-        if self.pixelGroup == None: self.make()
-        return self.pixelGroup.asSprite(backgroundChar)
+        if self.splitPixelGroup == None: self.make()
+        return self.splitPixelGroup.asSprite(backgroundChar)
     def asTexture(self,backgroundChar=" "):
-        if self.pixelGroup == None: self.make()
-        sprite = self.pixelGroup.asSprite(backgroundChar)
-        return sprite_to_texture(sprite)
+        if self.splitPixelGroup == None: self.make()
+        sprite = self.splitPixelGroup.asSprite(backgroundChar)
+        return sprite["xPos"],sprite["yPos"],sprite_to_texture(sprite)
+    def asSplitPixelGroup(self):
+        return {"ch":self.splitPixelGroup.chars,"po":self.pixels}
     # Draw
     def draw(self):
-        if self.pixelGroup == None: self.make()
-        self.pixelGroup.draw()
+        if self.splitPixelGroup == None: self.make()
+        self.splitPixelGroup.draw()
         return self
 
 # Template object for custom generator function to be added by user
@@ -56,8 +69,8 @@ class drawlibObj():
 # template._customGenerator = customGenerator
 # template.draw()
 class temlateDrawlibObj(drawlibObj):
-    def __init__(self,char,color=None,palette=stdpalette,autoGenerate=False,autoDraw=False,**kwargs):
-        super().__init__(char, color, palette)
+    def __init__(self,charset,charGenFunc=baseGenerator,color=None,palette=stdpalette,autoGenerate=False,autoDraw=False,**kwargs):
+        super().__init__(charset,charGenFunc, color, palette)
         self.genData = kwargs
         if autoGenerate == True: self.make()
         if autoDraw == True: self.draw()
@@ -68,8 +81,8 @@ class temlateDrawlibObj(drawlibObj):
 
 # Drawlib objects:
 class pointObj(drawlibObj):
-    def __init__(self,char,x1,y1,color=None,palette=stdpalette,autoGenerate=False,autoDraw=False):
-        super().__init__(char, color, palette)
+    def __init__(self,charset,x1,y1,charGenFunc=baseGenerator,color=None,palette=stdpalette,autoGenerate=False,autoDraw=False):
+        super().__init__(charset,charGenFunc, color, palette)
         self.genData = {
             "x1": x1,
             "y1": y1
@@ -80,8 +93,8 @@ class pointObj(drawlibObj):
         self.pixels = [[self.genData["x1"],self.genData["y1"]]]
 
 class lineObj(drawlibObj):
-    def __init__(self,char,x1,y1,x2,y2,color=None,palette=stdpalette,autoGenerate=False,autoDraw=False):
-        super().__init__(char, color, palette)
+    def __init__(self,charset,x1,y1,x2,y2,charGenFunc=baseGenerator,color=None,palette=stdpalette,autoGenerate=False,autoDraw=False):
+        super().__init__(charset,charGenFunc, color, palette)
         self.genData = {
             "x1": x1,
             "y1": y1,
@@ -94,9 +107,9 @@ class lineObj(drawlibObj):
         self.pixels = beethams_line_algorithm(**self.genData)
 
 class triangleObj(drawlibObj):
-    def __init__(self,char,x1,y1,x2,y2,x3,y3,color=None,palette=stdpalette,autoGenerate=False,autoDraw=False):
-        super().__init__(char, color, palette)
-        self.drawData = {
+    def __init__(self,charset,x1,y1,x2,y2,x3,y3,charGenFunc=baseGenerator,color=None,palette=stdpalette,autoGenerate=False,autoDraw=False):
+        super().__init__(charset,charGenFunc, color, palette)
+        self.genData = {
             "x1": x1,
             "y1": y1,
             "x2": x2,
@@ -115,8 +128,8 @@ class triangleObj(drawlibObj):
         self.pixels.extend( beethams_line_algorithm(*p2,*p3) )
 
 class rectangleObj(drawlibObj):
-    def __init__(self,char,x1,y1,x2,y2,x3,y3,x4,y4,color=None,palette=stdpalette,autoGenerate=False,autoDraw=False):
-        super().__init__(char, color, palette)
+    def __init__(self,charset,x1,y1,x2,y2,x3,y3,x4,y4,charGenFunc=baseGenerator,color=None,palette=stdpalette,autoGenerate=False,autoDraw=False):
+        super().__init__(charset,charGenFunc, color, palette)
         self.genData = {
             "x1": x1,
             "y1": y1,
@@ -140,8 +153,8 @@ class rectangleObj(drawlibObj):
         self.pixels.extend( beethams_line_algorithm(*p4,*p1) )
 
 class rectangleObj2(drawlibObj):
-    def __init__(self,char,c1,c2,color=None,palette=stdpalette,autoGenerate=False,autoDraw=False):
-        super().__init__(char, color, palette)
+    def __init__(self,charset,c1,c2,charGenFunc=baseGenerator,color=None,palette=stdpalette,autoGenerate=False,autoDraw=False):
+        super().__init__(charset,charGenFunc, color, palette)
         self.genData = {
             "c1": c1,
             "c2": c2
@@ -164,8 +177,8 @@ class rectangleObj2(drawlibObj):
         self.pixels = beethams_line_algorithm(**self.genData)
 
 class circleObj(drawlibObj):
-    def __init__(self, char, xM, yM, r, color=None,palette=stdpalette,autoGenerate=False,autoDraw=False):
-        super().__init__(char, color, palette)
+    def __init__(self, charset, xM, yM, r, charGenFunc=baseGenerator, color=None,palette=stdpalette,autoGenerate=False,autoDraw=False):
+        super().__init__(charset,charGenFunc, color, palette)
         self.genData = {
             "xM": xM,
             "yM": yM,
@@ -177,8 +190,8 @@ class circleObj(drawlibObj):
         self.pixels = beethams_circle_algorithm(x_center=self.genData["xM"],y_center=self.genData["yM"],radius=self.genData["r"])
 
 class ellipseObj(drawlibObj):
-    def __init__(self, char, cX, cY, xRad, yRad, color=None,palette=stdpalette,autoGenerate=False,autoDraw=False):
-        super().__init__(char, color, palette)
+    def __init__(self, charset, cX, cY, xRad, yRad, charGenFunc=baseGenerator, color=None,palette=stdpalette,autoGenerate=False,autoDraw=False):
+        super().__init__(charset,charGenFunc, color, palette)
         self.genData = {
             "cX": cX,
             "cY": cY,
@@ -191,8 +204,8 @@ class ellipseObj(drawlibObj):
         self.pixels = beethams_ellipse_algorithm(self.genData["cX"],self.genData["cY"],xRadius=self.genData["xRad"],yRadius=self.genData["yRad"])
 
 class quadBezierObj(drawlibObj):
-    def __init__(self, char, sX,sY, cX,cY, eX,eY, color=None,palette=stdpalette,autoGenerate=False,autoDraw=False):
-        super().__init__(char, color, palette)
+    def __init__(self, charset, sX,sY, cX,cY, eX,eY, charGenFunc=baseGenerator, color=None,palette=stdpalette,autoGenerate=False,autoDraw=False):
+        super().__init__(charset,charGenFunc, color, palette)
         self.genData = {
             "x0": sX,
             "y0": sY,
@@ -207,12 +220,12 @@ class quadBezierObj(drawlibObj):
         self.pixels = generate_quadratic_bezier(**self.genData)
 
 class cubicBezierObj(drawlibObj):
-    def __init__(self, char, sX,sY, c1X,c1Y, c2X,c2Y, eX,eY, algorithm="step",modifier=None, color=None,palette=stdpalette,autoGenerate=False,autoDraw=False):
+    def __init__(self, charset, sX,sY, c1X,c1Y, c2X,c2Y, eX,eY, charGenFunc=baseGenerator, algorithm="step",modifier=None, color=None,palette=stdpalette,autoGenerate=False,autoDraw=False):
         '''
         Alogrithm: "step" or "point"
         Modifier: With step algorithm, def: 0.01; With point algorithm, def: 100
         '''
-        super().__init__(char, color, palette)
+        super().__init__(charset,charGenFunc, color, palette)
         self.genData = {
             "sX": sX,
             "sY": sY,
@@ -273,6 +286,10 @@ class assetFileObj():
     def asTexture(self):
         if self.spriteObj == None: self.make()
         return sprite_to_texture(self.sprite)
+    def asSplitPixelGroup(self,exclusionChar=" "):
+        if self.spriteObj == None: self.make()
+        cmpxPixelGroup = sprite_to_cmpxPixelGroup(self.sprite,exclusionChar)
+        return cmpxPixelGroup_to_splitPixelGroup(cmpxPixelGroup)
     def draw(self):
         if self.spriteObj == None: self.make()
         self.spriteObj.draw()
@@ -313,6 +330,11 @@ class assetTexture():
     def asTexture(self):
         if self.textureObj == None: self.make()
         return sprite_to_texture(self.sprite)
+    def asSplitPixelGroup(self,xPos=int,yPos=int,exclusionChar=" "):
+        if self.textureObj == None: self.make()
+        sprite = self.textureObj.asSprite(xPos,yPos)
+        cmpxPixelGroup = sprite_to_cmpxPixelGroup(sprite,exclusionChar)
+        return cmpxPixelGroup_to_splitPixelGroup(cmpxPixelGroup)
     def draw(self,xPos=0,yPos=0):
         if self.textureObj == None: self.make()
         self.textureObj.draw(xPos,yPos)

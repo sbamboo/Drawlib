@@ -1,4 +1,5 @@
 import math
+from .coreTypes import cmpxPixelGroup_to_sprite
 
 # Function to print a texture(listOfLines) position colors and such
 def drawlib_internal_printmemsprite(texture,posX,posY,colorcode,offsetX=None,offsetY=None):
@@ -67,3 +68,56 @@ def draw_curve(cordinates=tuple(), radius=int(), char=str(), quadrant=int()):
             flipped_texture.append(line)
     flipped_texture = [s for s in flipped_texture if s.strip()]
     drawlib_internal_printmemsprite(flipped_texture,cordinates[0],cordinates[1],"0")
+
+# Pixelstrip
+def pixelStrip_to_cmpxPixelGroup(pixelStrip=dict):
+    pixels = pixelStrip["po"]
+    chars = pixelStrip["st"].split("§;§")
+    cmpxPixelGroup = []
+    for i,char in enumerate(chars):
+        cmpxPixelGroup.append( {"char":char,"pos":pixels[i]} )
+    return cmpxPixelGroup
+
+def cmpxPixelGroup_to_pixelStrip(cmpxPixelGroup):
+    strip = ""
+    _strip = []
+    poss = []
+    for pGroup in cmpxPixelGroup:
+        _strip.append(pGroup["char"])
+        poss.append(pGroup["pos"])
+    strip = "§;§".join(_strip)
+    return {"st":strip,"po":poss}
+
+def render_pixelStrip(pixelStrip=dict,ansi=None):
+    cmpxPixelGroup = pixelStrip_to_cmpxPixelGroup(pixelStrip)
+    render_cmpxPixelGroup(cmpxPixelGroup,ansi=ansi)
+
+class pixelStrip():
+    def __init__(self,strip=None,positions=None,pixelStrip=None, color=None,palette=None):
+        if strip != None:
+            if isinstance(strip, str) != True: raise ValueError("Strip must be a string!")
+        if positions != None:
+            if isinstance(positions, list) != True: raise ValueError("Positions must be a list!")
+        if pixelStrip != None:
+            if isinstance(pixelStrip, list) != True: raise ValueError("PixelStrip must be a dict!")
+        self.strip = strip
+        self.positions = positions
+        if pixelStrip != None:
+            self.strip = pixelStrip["st"]
+            self.positions = pixelStrip["po"]
+        self.ansi = autoNoneColor(color,palette)
+    def asPixelGroup(self):
+        return self.positions
+    def asCmpxPixelGroup(self):
+        pixelStrip_to_cmpxPixelGroup({"st":self.strip,"po":self.positions})
+    def asSprite(self,exclusionChar=" "):
+        cmpxPixelGroup = pixelStrip_to_cmpxPixelGroup({"st":self.strip,"po":self.positions})
+        return cmpxPixelGroup_to_sprite(cmpxPixelGroup,exclusionChar)
+    def asTexture(self,exclusionChar=" "):
+        cmpxPixelGroup = pixelStrip_to_cmpxPixelGroup({"st":self.strip,"po":self.positions})
+        sprite = cmpxPixelGroup_to_sprite(cmpxPixelGroup,exclusionChar)
+        return sprite["xPos"],sprite["yPos"],sprite_to_texture(sprite)
+    def asPixelStrip(self):
+        return {"st":self.strip,"po":self.positions}
+    def draw(self):
+        render_pixelStrip(pixelStrip,self.ansi)

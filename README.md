@@ -20,6 +20,7 @@ Author:  Simon Kalmi Claesson
     tui.py: Contains tui-specific utility-functions and likewise.
     imaging.py: Contains image rendering stuff.
     manip.py: Image manipulation functions.
+    generators.py: Contains charcacter patter generators.
 
 
 

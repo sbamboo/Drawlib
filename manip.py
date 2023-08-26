@@ -1,4 +1,6 @@
-def fillShape(texture=list,backgroundChar=" ",fillChar=str):
+from .coreTypes import normalizeTextureSplit
+
+def fillShape(texture=list,backgroundChars=[" "],fillChar=str):
     nTex = []
     for line in texture:
         sline = list(line)
@@ -7,40 +9,314 @@ def fillShape(texture=list,backgroundChar=" ",fillChar=str):
         nline = ""
         chars = []
         for i,char in enumerate(sline):
-            if char != backgroundChar:
+            if char not in backgroundChars:
                 chars.append(i)
         si = min(chars)
         ei = max(chars)
         indexes = list(range(si + 1, ei))
         for index in indexes:
-            if 0 <= index < len(sline):
+            if 0 <= index < len(sline) and sline[index] in backgroundChars:
                 sline[index] = fillChar
         nline = ''.join(sline)
         nTex.append(nline)
     return nTex
 
-def stretchShape(texture=list, backgroundChar=""):
+def stretchShapeX(texture=list, backgroundChars=[" "]):
     doubled_texture = []
-
     for line in texture:
         doubled_line = ""
         for i, char in enumerate(line):
-            if char in backgroundChar:
+            if char in backgroundChars:
                 # Check left and right characters for edge preservation
                 left_char = line[i - 1] if i > 0 else ' '
                 right_char = line[i + 1] if i < len(line) - 1 else ' '
 
                 # Determine the character to use for preserving edges
-                edge_char = char if left_char in backgroundChar or right_char in backgroundChar else ' '
-                doubled_line += edge_char * 2
+                if left_char in backgroundChars:
+                    doubled_line += char + " "
+                elif right_char in backgroundChars:
+                    doubled_line += " " + char
+                else:
+                    doubled_line += " " * 2
             else:
                 # Double the non-empty characters
                 doubled_line += char * 2
         doubled_texture.append(doubled_line)
     return doubled_texture
 
-def fillShapeObj(shapeObj):
-    pass
+def stretchShapeXlp(texture=list, backgroundChars=[" "]):
+    stretched_texture = []
+    for lIndex,line in enumerate(texture):
+        stretched_line = ""
+        for i, char in enumerate(line):
+            if char in backgroundChars:
+                left_char = line[i - 1] if i > 0 else ' '
+                right_char = line[i + 1] if i < len(line) - 1 else ' '
 
-def stretchShapeObj(shapeObj):
-    pass
+                if left_char in backgroundChars or right_char in backgroundChars:
+                    stretched_line += ' ' + char
+                else:
+                    stretched_line += char
+            else:
+                #Bottom half
+                if lIndex > round(len(texture)/2):
+                    if lIndex == len(texture)-1:
+                        stretched_line += char * 2
+                    else:
+                        # left
+                        if i < round(len(line)/2):
+                            # Get border
+                            border = None
+                            for _char in line:
+                                if _char not in backgroundChars and border == None:
+                                    border = _char
+                            if texture[lIndex+1][i] == border:
+                                # get nbc
+                                nbc = None
+                                for _i in range(len(line)):
+                                    if nbc == None:
+                                        if line[_i] != border and (line[_i] in backgroundChars) == False:
+                                            nbc = line[_i]
+                                if nbc == None: nbc = " "
+                                # append
+                                stretched_line += char + nbc
+                            else:
+                                stretched_line += char * 2
+                        # right
+                        else:
+                            rline = line[::-1]
+                            # Get border
+                            border = None
+                            for _char in rline:
+                                if _char not in backgroundChars and border == None:
+                                    border = _char
+                            if texture[lIndex+1][i] == border:
+                                # get nbc
+                                nbc = None
+                                for _i in range(len(rline)):
+                                    if nbc == None:
+                                        if rline[_i] != border and (rline[_i] in backgroundChars) == False:
+                                            nbc = rline[_i]
+                                if nbc == None: nbc = " "
+                                # append
+                                stretched_line += nbc + char
+                            else:
+                                stretched_line += char * 2
+                #Top half
+                else:
+                    if lIndex == 0:
+                        stretched_line += char * 2
+                    else:
+                        # left
+                        if i < round(len(line)/2):
+                            # Get border
+                            border = None
+                            for _char in line:
+                                if _char not in backgroundChars and border == None:
+                                    border = _char
+                            if texture[lIndex-1][i] == border:
+                                # get nbc
+                                nbc = None
+                                for _i in range(len(line)):
+                                    if nbc == None:
+                                        if line[_i] != border and (line[_i] in backgroundChars) == False:
+                                            nbc = line[_i]
+                                if nbc == None: nbc = " "
+                                # append
+                                stretched_line += char + nbc
+                            else:
+                                stretched_line += char * 2
+                        #right
+                        else:
+                            rline = line[::-1]
+                            # Get border
+                            border = None
+                            for _char in rline:
+                                if _char not in backgroundChars and border == None:
+                                    border = _char
+                            if texture[lIndex-1][i] == border:
+                                # get nbc
+                                nbc = None
+                                for _i in range(len(rline)):
+                                    if nbc == None:
+                                        if rline[_i] != border and (rline[_i] in backgroundChars) == False:
+                                            nbc = rline[_i]
+                                if nbc == None: nbc = " "
+                                # append
+                                stretched_line += nbc + char
+                            else:
+                                stretched_line += char * 2
+        stretched_texture.append(stretched_line)
+    return stretched_texture
+
+def stretchShapeY(texture, background_chars=[" "]):
+    stretched_texture = []
+    for i, line in enumerate(texture):
+        stretched_texture.append(line)
+        stretched_texture.append(line)
+    return stretched_texture
+
+def stretchShapeYlp(texture, backgroundChars=[" "]):
+    stretched_texture = []
+    for lIndex, line in enumerate(texture):
+        #top half
+        if lIndex < round(len(texture)/2):
+            topLine = line
+            botLine = line
+            # handle botLine
+            newBotLine = ""
+            for i,char in enumerate(botLine):
+                # Left
+                if i < round(len(botLine)/2):
+                    # Get border
+                    border = None
+                    for _char in botLine:
+                        if _char not in backgroundChars and border == None:
+                            border = _char
+                    # Append
+                    if char == border and topLine[i] == border:
+                        if i != 0:
+                            if botLine[i-1] == border:
+                                # Get yStack
+                                yStack = ""
+                                for _i in range(len(texture)):
+                                    yStack += texture[_i][i]
+                                # Get nbc
+                                nbc = None
+                                for _i in range(len(yStack)):
+                                    if nbc == None:
+                                        if yStack[_i] != border and (yStack[_i] in backgroundChars) == False:
+                                            nbc = yStack[_i]
+                                if nbc == None: nbc = " "
+                                # Append
+                                newBotLine += nbc
+                            else:
+                                newBotLine += char
+                        else:
+                            newBotLine += char
+                    else:
+                        newBotLine += char
+                else:
+                    rBotLine = botLine[::-1]
+                    # Get border
+                    border = None
+                    for _char in rBotLine:
+                        if _char not in backgroundChars and border == None:
+                            border = _char
+                    # Append
+                    if char == border and topLine[i] == border:
+                        if i != len(botLine)-1:
+                            if botLine[i+1] == border:
+                                # Get yStack
+                                yStack = ""
+                                for _i in range(len(texture)):
+                                    yStack += texture[_i][i]
+                                # Get nbc
+                                nbc = None
+                                for _i in range(len(yStack)):
+                                    if nbc == None:
+                                        if yStack[_i] != border and (yStack[_i] in backgroundChars) == False:
+                                            nbc = yStack[_i]
+                                if nbc == None: nbc = " "
+                                # Append
+                                newBotLine += nbc
+                            else:
+                                newBotLine += char
+                        else:
+                            newBotLine += char
+                    else:
+                        newBotLine += char
+            # append
+            stretched_texture.append(topLine)
+            stretched_texture.append(newBotLine)
+        # Bottom half
+        else:
+            topLine = line
+            botLine = line
+            # handle topLine
+            newTopLine = ""
+            for i,char in enumerate(topLine):
+                # Left
+                if i < round(len(topLine)/2):
+                    # Get border
+                    border = None
+                    for _char in topLine:
+                        if _char not in backgroundChars and border == None:
+                            border = _char
+                    # Append
+                    if char == border and botLine[i] == border:
+                        if i != 0:
+                            if topLine[i-1] == border:
+                                # Get yStack
+                                yStack = ""
+                                for _i in range(len(texture)):
+                                    yStack += texture[_i][i]
+                                # Get nbc
+                                nbc = None
+                                for _i in range(len(yStack)):
+                                    if nbc == None:
+                                        if yStack[_i] != border and (yStack[_i] in backgroundChars) == False:
+                                            nbc = yStack[_i]
+                                if nbc == None: nbc = " "
+                                # Append
+                                newTopLine += nbc
+                            else:
+                                newTopLine += char
+                        else:
+                            newTopLine += char
+                    else:
+                        newTopLine += char
+                else:
+                    rTopLine = topLine[::-1]
+                    # Get border
+                    border = None
+                    for _char in rTopLine:
+                        if _char not in backgroundChars and border == None:
+                            border = _char
+                    # Append
+                    if char == border and botLine[i] == border:
+                        if i != len(topLine)-1:
+                            if topLine[i+1] == border:
+                                # Get yStack
+                                yStack = ""
+                                for _i in range(len(texture)):
+                                    yStack += texture[_i][i]
+                                yStack = yStack[::-1]
+                                # Get nbc
+                                nbc = None
+                                for _i in range(len(yStack)):
+                                    if nbc == None:
+                                        if yStack[_i] != border and (yStack[_i] in backgroundChars) == False:
+                                            nbc = yStack[_i]
+                                if nbc == None: nbc = " "
+                                # Append
+                                newTopLine += nbc
+                            else:
+                                newTopLine += char
+                        else:
+                            newTopLine += char
+                    else:
+                        newTopLine += char
+            # append
+            stretched_texture.append(newTopLine)
+            stretched_texture.append(botLine)
+    return stretched_texture
+
+def fillSpriteObj(shapeObj,fillChar=str,bgChars=[" "]) -> None:
+    xPos,yPos,tx = shapeObj.asTexture()
+    tx = fillShape(normalizeTextureSplit(tx),bgChars,fillChar)
+    shapeObj.sprite = {"xPos":xPos,"yPos":yPos,"tx":tx}
+
+def stretchSpriteObj(shapeObj,bgChars=[" "],axis="X",linePreserve=False) -> None:
+    xPos,yPos,tx = shapeObj.asTexture()
+    if axis.lower() == "x":
+        if linePreserve == True:
+            tx = stretchShapeXlp(normalizeTextureSplit(tx),bgChars)
+        else:
+            tx = stretchShapeX(normalizeTextureSplit(tx),bgChars)
+    else:
+        if linePreserve == True:
+            tx = stretchShapeYlp(normalizeTextureSplit(tx),bgChars)
+        else:
+            tx = stretchShapeY(normalizeTextureSplit(tx),bgChars)
+    shapeObj.sprite = {"xPos":xPos,"yPos":yPos,"tx":tx}

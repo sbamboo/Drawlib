@@ -12,14 +12,25 @@ from .tools import *
 from .pointGroupAlgorithms import *
 from .SimpleSpriteRenderer import rend
 
+# Place writeHead at a pos
+def reset_write_head(x=0,y=0):
+  line = "\033[{};{}H".format(x,y)
+  print(line)
+
 # Fill Screen
-def fill_terminal(char):
+def fill_terminal(char,addX=0,addY=0,savePos=False):
+  # Save the current position of the write head
+  if savePos == True: print("\033[s", end="")
   # Get the terminal size
   columns, rows = os.get_terminal_size()
+  columns = columns+addX
+  rows = rows+addY
   # Print the character repeatedly to fill the terminal
   print(char * columns)
   for i in range(rows - 1):
     print(char * columns)
+  # Return the write head to the original position
+  if savePos == True: print("\033[u", end="")
 
 
 # Draw a point of cords
