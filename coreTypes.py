@@ -175,6 +175,11 @@ def render_pixelStrip(pixelStrip=dict,ansi=None):
     cmpxPixelGroup = pixelStrip_to_cmpxPixelGroup(pixelStrip)
     render_cmpxPixelGroup(cmpxPixelGroup,ansi=ansi)
 
+def determineDataType(object):
+    _type = None
+    #pixelgroup
+    
+
 # [Classes]
 # Theese classes are to allow more methods and conversions to bee avaliable between the dataTypes using the functions above.
 # And have a few standard methods: asPixelGroup, asCmpxPixelGroup, asSprite, asTexture, draw

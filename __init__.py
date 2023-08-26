@@ -10,6 +10,7 @@ from . import SimpleSpriteRenderer
 from . import tools
 from . import tui
 from . import imaging
+from . import manip
 
 fill_terminal = linedraw.fill_terminal
 stdpalette = coloring.getStdPalette()
@@ -30,3 +31,4 @@ class DrawlibRenderer():
         self.stdpalette = stdpalette
         self.fill_terminal = linedraw.fill_terminal
         self.imaging = imaging
+        self.manip = manip

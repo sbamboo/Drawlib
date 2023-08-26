@@ -19,6 +19,7 @@ Author:  Simon Kalmi Claesson
     tools.py: Mostly internal but contains functions needed throughout drawlib.
     tui.py: Contains tui-specific utility-functions and likewise.
     imaging.py: Contains image rendering stuff.
+    manip.py: Image manipulation functions.
 
 
 
