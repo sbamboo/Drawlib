@@ -70,7 +70,7 @@ class drawlibObj():
 # template.draw()
 class temlateDrawlibObj(drawlibObj):
     def __init__(self,charset,color=None,palette=stdpalette,charFunc=baseGenerator,autoGenerate=False,autoDraw=False,**kwargs):
-        super().__init__(charset,charFunc, color, palette)
+        super().__init__(charset, color, palette, charFunc)
         self.genData = kwargs
         if autoGenerate == True: self.make()
         if autoDraw == True: self.draw()
@@ -82,7 +82,7 @@ class temlateDrawlibObj(drawlibObj):
 # Drawlib objects:
 class pointObj(drawlibObj):
     def __init__(self,charset,x1,y1,color=None,palette=stdpalette,charFunc=baseGenerator,autoGenerate=False,autoDraw=False):
-        super().__init__(charset,charFunc, color, palette)
+        super().__init__(charset, color, palette, charFunc)
         self.genData = {
             "x1": x1,
             "y1": y1
@@ -94,7 +94,7 @@ class pointObj(drawlibObj):
 
 class lineObj(drawlibObj):
     def __init__(self,charset,x1,y1,x2,y2,color=None,palette=stdpalette,charFunc=baseGenerator,autoGenerate=False,autoDraw=False):
-        super().__init__(charset,charFunc, color, palette)
+        super().__init__(charset, color, palette, charFunc)
         self.genData = {
             "x1": x1,
             "y1": y1,
@@ -108,7 +108,7 @@ class lineObj(drawlibObj):
 
 class triangleObj(drawlibObj):
     def __init__(self,charset,x1,y1,x2,y2,x3,y3,color=None,palette=stdpalette,charFunc=baseGenerator,autoGenerate=False,autoDraw=False):
-        super().__init__(charset,charFunc, color, palette)
+        super().__init__(charset, color, palette, charFunc)
         self.genData = {
             "x1": x1,
             "y1": y1,
@@ -129,7 +129,7 @@ class triangleObj(drawlibObj):
 
 class rectangleObj(drawlibObj):
     def __init__(self,charset,x1,y1,x2,y2,x3,y3,x4,y4,color=None,palette=stdpalette,charFunc=baseGenerator,autoGenerate=False,autoDraw=False):
-        super().__init__(charset,charFunc, color, palette)
+        super().__init__(charset, color, palette, charFunc)
         self.genData = {
             "x1": x1,
             "y1": y1,
@@ -154,7 +154,7 @@ class rectangleObj(drawlibObj):
 
 class rectangleObj2(drawlibObj):
     def __init__(self,charset,c1,c2,color=None,palette=stdpalette,charFunc=baseGenerator,autoGenerate=False,autoDraw=False):
-        super().__init__(charset,charFunc, color, palette)
+        super().__init__(charset, color, palette, charFunc)
         self.genData = {
             "c1": c1,
             "c2": c2
@@ -178,7 +178,7 @@ class rectangleObj2(drawlibObj):
 
 class circleObj(drawlibObj):
     def __init__(self, charset, xM, yM, r, color=None,palette=stdpalette,charFunc=baseGenerator,autoGenerate=False,autoDraw=False):
-        super().__init__(charset,charFunc, color, palette)
+        super().__init__(charset, color, palette, charFunc)
         self.genData = {
             "xM": xM,
             "yM": yM,
@@ -191,7 +191,7 @@ class circleObj(drawlibObj):
 
 class ellipseObj(drawlibObj):
     def __init__(self, charset, cX, cY, xRad, yRad, color=None,palette=stdpalette,charFunc=baseGenerator,autoGenerate=False,autoDraw=False):
-        super().__init__(charset,charFunc, color, palette)
+        super().__init__(charset, color, palette, charFunc)
         self.genData = {
             "cX": cX,
             "cY": cY,
@@ -205,7 +205,7 @@ class ellipseObj(drawlibObj):
 
 class quadBezierObj(drawlibObj):
     def __init__(self, charset, sX,sY, cX,cY, eX,eY, color=None,palette=stdpalette,charFunc=baseGenerator,autoGenerate=False,autoDraw=False):
-        super().__init__(charset,charFunc, color, palette)
+        super().__init__(charset, color, palette, charFunc)
         self.genData = {
             "x0": sX,
             "y0": sY,
@@ -225,7 +225,7 @@ class cubicBezierObj(drawlibObj):
         Alogrithm: "step" or "point"
         Modifier: With step algorithm, def: 0.01; With point algorithm, def: 100
         '''
-        super().__init__(charset,charFunc, color, palette)
+        super().__init__(charset, color, palette, charFunc)
         self.genData = {
             "sX": sX,
             "sY": sY,
