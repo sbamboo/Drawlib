@@ -19,6 +19,7 @@ stdpalette = coloring.getStdPalette()
 baseGenerator = generators.baseGenerator
 repeatGenerator = generators.repeatGenerator
 numberGenerator = generators.numberGenerator
+rainbowGenerator = generators.rainbowGenerator
 rainbowGeneratorZero = generators.rainbowGeneratorZero
 
 class DrawlibRenderer():
@@ -42,4 +43,5 @@ class DrawlibRenderer():
         self.baseGenerator = baseGenerator
         self.repeatGenerator = repeatGenerator
         self.numberGenerator = numberGenerator
+        self.rainbowGenerator = rainbowGenerator
         self.rainbowGeneratorZero = rainbowGeneratorZero

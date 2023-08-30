@@ -18,7 +18,7 @@ def reset_write_head(x=0,y=0):
   print(line)
 
 # Fill Screen
-def fill_terminal(char,addX=0,addY=0,savePos=True):
+def fill_terminal(char,addX=0,addY=0,savePos=False):
   # Save the current position of the write head
   if savePos == True: print("\033[s", end="")
   # Get the terminal size
