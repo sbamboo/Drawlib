@@ -63,10 +63,10 @@ def baseGenerator(charset=list,pixels=list):
     return chars
 
 def repeatGenerator(charset=list,pixels=list):
-    if charset != [] or charset == None: char = "#"
+    if charset == [] or charset == None: charset = ["#"]
     csi = 0
     chars = []
-    for px in pixels:
+    for _ in pixels:
         if csi > len(charset)-1:
             csi = 0
         chars.append(charset[csi])

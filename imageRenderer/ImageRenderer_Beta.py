@@ -89,6 +89,10 @@ def darkenColorWrap(hexcolor,alpha=None,apply=True):
     else:
         return hexcolor
 
+def getChar(charset,charIndex,safe=False):
+    if safe == True:
+        charIndex = min(charIndex,(len(charset)-1))
+    return charset[charIndex]
 
 # [Main Function]
 def ImageRenderer(image=str,type="ascii",mode=None,char=None,pc=False,method=None,invert=False,monochrome=False,width=None,height=None,resampling="lanczos",asTexture=False,colorMode="pythonAnsi",textureCodec=None):
@@ -204,6 +208,7 @@ def ImageRenderer(image=str,type="ascii",mode=None,char=None,pc=False,method=Non
             line = ""
             for x in range(image.width):
                 pixel = image.getpixel((x, y))
+                if len(pixel) == 3: pixel = (pixel[0],pixel[1],pixel[2],255)
                 # ASCII
                 if type == "ascii":
                     # STANDARD
@@ -216,7 +221,7 @@ def ImageRenderer(image=str,type="ascii",mode=None,char=None,pc=False,method=Non
                             # ALPHA
                             elif method == "alpha":
                                 charIndex = int(pixel[3] / len(charset))
-                            char = charset[charIndex]
+                            char = getChar(charset,charIndex,True)
                         #PC (PerChar mapping)
                         else:
                             #LUM
@@ -225,7 +230,7 @@ def ImageRenderer(image=str,type="ascii",mode=None,char=None,pc=False,method=Non
                             # ALPHA
                             elif method == "alpha":
                                 charIndex = int(pixel[3] / (255 / len(charset)))
-                            char = charset[charIndex]
+                            char = getChar(charset,charIndex,True)
                     # COLOR
                     elif mode == "color":
                         # NOPC
@@ -247,9 +252,9 @@ def ImageRenderer(image=str,type="ascii",mode=None,char=None,pc=False,method=Non
                         # Get char
                         if monochrome:
                             _hex = hexToMonochromeHex(pixelToHexColor(pixel))
-                            char = stringPrepper(charset[charIndex],_hex,False,colorMode)
+                            char = stringPrepper(getChar(charset,charIndex,True),_hex,False,colorMode)
                         else:
-                            char = stringPrepper(charset[charIndex],pixelToHexColor(pixel),False,colorMode)
+                            char = stringPrepper(getChar(charset,charIndex,True),pixelToHexColor(pixel),False,colorMode)
                     line += char
                 # BOX
                 elif type == "box":
