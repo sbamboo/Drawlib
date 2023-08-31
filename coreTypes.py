@@ -156,6 +156,15 @@ def render_listTexture(xPos=0,yPos=0,texture=list,ansi=None):
     # Convert to sprite and render
     sprite = listTexture_to_sprite(texture,xPos,yPos)
     render_sprite(sprite,ansi=ansi)
+def render_textureAlt(xPos=0,yPos=0,texture=str,ansi=None):
+    # Use a modified sprite renderer
+    print("\033[s") # Save cursorPos
+    prefline = "\033[" + str(yPos) + ";" + str(xPos) + "H"
+    if ansi != None:
+        prefline += "\033[" + str(ansi)
+        if str(ansi).endswith("m") != True: prefline += "m"
+    print(prefline, str(texture), "\033[0m")
+    print("\033[u\033[2A") # Load cursorPos
 
 def _join_with_delimiter(strings, delimiter):
     # Join a list of strings with the given delimiter

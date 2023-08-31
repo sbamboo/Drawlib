@@ -263,8 +263,8 @@ def ImageRenderer(image=str,type="ascii",mode=None,char=None,pc=False,method=Non
                         # MONO
                         if monochrome:
                             charIndex = int(pixelAverage(pixel) / (255 / len(monoGradient)))
-                            #char = f"{hexToAnsi(monoGradient[charIndex])}{char}\033[0m"
-                            char = stringPrepper(charset,darkenColorWrap(monoGradient[charIndex],pixel[3],method == "alpha"),False,colorMode)
+                            #char = f"{hexToAnsi(getChar(monoGradient,charIndex,True))}{char}\033[0m"
+                            char = stringPrepper(charset,darkenColorWrap(getChar(monoGradient,charIndex,True),pixel[3],method == "alpha"),False,colorMode)
                         # FullColor
                         else:
                             #char = f"{hexToAnsi(pixelToHexColor(pixel))}{char}\033[0m"
@@ -274,8 +274,8 @@ def ImageRenderer(image=str,type="ascii",mode=None,char=None,pc=False,method=Non
                         # MONO
                         if monochrome:
                             charIndex = int(pixelAverage(pixel) / (255 / len(monoGradient)))
-                            #char = f"{hexToAnsi(monoGradient[charIndex], background=True)}{char}\033[0m"
-                            char = stringPrepper(charset,darkenColorWrap(monoGradient[charIndex],pixel[3],method == "alpha"),True,colorMode)
+                            #char = f"{hexToAnsi(getChar(monoGradient,charIndex,True), background=True)}{char}\033[0m"
+                            char = stringPrepper(charset,darkenColorWrap(getChar(monoGradient,charIndex,True),pixel[3],method == "alpha"),True,colorMode)
                         # FullColor
                         else:
                             #char = f"{hexToAnsi(pixelToHexColor(pixel), background=True)}{char}\033[0m"
