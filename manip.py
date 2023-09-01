@@ -363,3 +363,49 @@ def rotateSplitPixelGroup(splitPixelGroup, degrees, fixTopLeft=False):
         rotated_coordinates = addDiffToCoords(rotated_coordinates, diff[0], diff[1])
     # Return
     return {"ch":rotated_characters,"po":rotated_coordinates}
+
+def fillBoundaryGap(splitPixelGroup):
+    characters = splitPixelGroup["ch"]
+    coordinates = splitPixelGroup["po"]
+    # fix
+    if not characters or not coordinates:
+        return {"ch":characters,"po":coordinates}
+    # Find the minimum and maximum X and Y coordinates to define the bounding box
+    min_x = min(x for x, _ in coordinates)
+    max_x = max(x for x, _ in coordinates)
+    min_y = min(y for _, y in coordinates)
+    max_y = max(y for _, y in coordinates)
+    # Initialize a set to keep track of existing coordinates
+    existing_coords = set(coordinates)
+    # Initialize lists for the new characters and coordinates
+    new_characters = characters.copy()
+    new_coordinates = coordinates.copy()
+    # Iterate through the bounding box
+    for y in range(min_y, max_y + 1):
+        for x in range(min_x, max_x + 1):
+            # Check if the current coordinate is not in the existing coordinates set
+            current_coord = (x, y)
+            if current_coord not in existing_coords:
+                # Check if the surrounding coordinates are in the existing coordinates set
+                neighbors = [(x + dx, y + dy) for dx, dy in [(1, 0), (-1, 0), (0, 1), (0, -1)]]
+                if any(neighbor in existing_coords for neighbor in neighbors):
+                    # Get the left neighbor
+                    #leftN = None
+                    #mi = 1
+                    #while leftN not in existing_coords:
+                    #    if mi > (max_x - min_x):
+                    #        leftN = coordinates[0]
+                    #        break
+                    #    leftN = (current_coord[0]-mi,current_coord[1])
+                    #    mi += 1
+                    left = (current_coord[0]-1,current_coord[1])
+                    if left in existing_coords:
+                        leftN = left
+                    else:
+                        leftN = coordinates[0]
+                    leftNIndex = coordinates.index(leftN)
+                    # Add the left-surrounded character and the empty pixel coordinate
+                    new_characters.append(characters[leftNIndex])
+                    new_coordinates.append(current_coord)
+    # Return
+    return {"ch":new_characters,"po":new_coordinates}

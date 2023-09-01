@@ -95,7 +95,7 @@ def getChar(charset,charIndex,safe=False):
     return charset[charIndex]
 
 # [Main Function]
-def ImageRenderer(image=str,rentype="ascii",mode=None,char=None,pc=False,method=None,invert=False,monochrome=False,width=None,height=None,resampling="lanczos",asTexture=False,colorMode="pythonAnsi",textureCodec=None):
+def ImageRenderer(image=str,rentype="ascii",mode=None,char=None,pc=False,method=None,invert=False,monochrome=False,width=None,height=None,resampling="lanczos",asTexture=False,colorMode="pythonAnsi",textureCodec=None,delimitChars=False):
     types = {
         "image":str,
         "rentype":str,
@@ -110,7 +110,8 @@ def ImageRenderer(image=str,rentype="ascii",mode=None,char=None,pc=False,method=
         "resampling":str,
         "asTexture":bool,
         "colorMode":str,
-        "textureCodec":str
+        "textureCodec":str,
+        "delimitChars":bool
     }
     for _var,_type in types.items():
         if locals()[_var] != None:
@@ -261,6 +262,8 @@ def ImageRenderer(image=str,rentype="ascii",mode=None,char=None,pc=False,method=
                             char = stringPrepper(getChar(charset,charIndex,True),_hex,False,colorMode)
                         else:
                             char = stringPrepper(getChar(charset,charIndex,True),pixelToHexColor(pixel),False,colorMode)
+                    if delimitChars == True:
+                        char = ";delim;" + char
                     line += char
                 # BOX
                 elif rentype == "box":
@@ -286,6 +289,8 @@ def ImageRenderer(image=str,rentype="ascii",mode=None,char=None,pc=False,method=
                         else:
                             #char = f"{hexToAnsi(pixelToHexColor(pixel), background=True)}{char}\033[0m"
                             char = stringPrepper(charset,darkenColorWrap(pixelToHexColor(pixel),pixel[3],method == "alpha"),True,colorMode)
+                    if delimitChars == True:
+                        char = ";delim;" + char
                     line += char
             # Print or append to texture
             outTexture.append(line+"\033[0m")
