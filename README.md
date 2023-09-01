@@ -21,6 +21,7 @@ Author:  Simon Kalmi Claesson
     imaging.py: Contains image rendering stuff.
     manip.py: Image manipulation functions.
     generators.py: Contains charcacter patter generators.
+    buffering.py: Contains code and functions for buffering.
 
 
 

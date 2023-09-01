@@ -12,6 +12,7 @@ from . import tui
 from . import imaging
 from . import manip
 from . import generators
+from . import buffering
 
 fill_terminal = linedraw.fill_terminal
 reset_write_head = linedraw.reset_write_head
@@ -40,6 +41,7 @@ class DrawlibRenderer():
         self.reset_write_head = linedraw.reset_write_head
         self.imaging = imaging
         self.manip = manip
+        self.buffering = buffering
         self.baseGenerator = baseGenerator
         self.repeatGenerator = repeatGenerator
         self.numberGenerator = numberGenerator
