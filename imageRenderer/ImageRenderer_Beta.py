@@ -95,10 +95,10 @@ def getChar(charset,charIndex,safe=False):
     return charset[charIndex]
 
 # [Main Function]
-def ImageRenderer(image=str,type="ascii",mode=None,char=None,pc=False,method=None,invert=False,monochrome=False,width=None,height=None,resampling="lanczos",asTexture=False,colorMode="pythonAnsi",textureCodec=None):
+def ImageRenderer(image=str,rentype="ascii",mode=None,char=None,pc=False,method=None,invert=False,monochrome=False,width=None,height=None,resampling="lanczos",asTexture=False,colorMode="pythonAnsi",textureCodec=None):
     types = {
         "image":str,
-        "type":str,
+        "rentype":str,
         "mode":str,
         "char":str,
         "pc":bool,
@@ -123,7 +123,7 @@ def ImageRenderer(image=str,type="ascii",mode=None,char=None,pc=False,method=Non
             raise FileNotFoundError(f"Image file not found: '{image}'")
 
         # [Lowering some arguments]
-        if isinstance(type,str) == True: type = type.lower()
+        if isinstance(rentype,str) == True: rentype = rentype.lower()
         if isinstance(mode,str) == True: mode = mode.lower()
         if isinstance(method,str) == True: method = method.lower()
         if isinstance(colorMode,str) == True: colorMode = colorMode.lower()
@@ -132,7 +132,7 @@ def ImageRenderer(image=str,type="ascii",mode=None,char=None,pc=False,method=Non
         # [Set Default Values]
         # Set default rendering mode based on type
         if mode is None:
-            if type == "ascii":
+            if rentype == "ascii":
                 mode = "standard"
             else:
                 mode = "foreground"
@@ -143,15 +143,15 @@ def ImageRenderer(image=str,type="ascii",mode=None,char=None,pc=False,method=Non
 
         # Set default characters for rendering based on type and mode
         if char is None:
-            if type == "ascii":
+            if rentype == "ascii":
                 char = baseAsciiPalette
-            elif type == "box":
+            elif rentype == "box":
                 if mode in acceptableFgKeywords:
                     char = baseBoxCharFg
                 elif mode in acceptableBgKeywords:
                     char = baseBoxCharBg
         else:
-            if type == "ascii":
+            if rentype == "ascii":
                 # Parse charSet commas
                 if ",,," in char.strip(" ") or ",," in char.strip(" "):
                     char = char.strip(" ")
@@ -197,7 +197,7 @@ def ImageRenderer(image=str,type="ascii",mode=None,char=None,pc=False,method=Non
             char = char[::-1]
 
         # Reverse character array if using alpha method in ASCII mode
-        if method == "alpha" and type == "ascii":
+        if method == "alpha" and rentype == "ascii":
             char = char[::-1]
 
         # [Render / Assemble Texture]
@@ -208,9 +208,15 @@ def ImageRenderer(image=str,type="ascii",mode=None,char=None,pc=False,method=Non
             line = ""
             for x in range(image.width):
                 pixel = image.getpixel((x, y))
-                if len(pixel) == 3: pixel = (pixel[0],pixel[1],pixel[2],255)
+                try:
+                    if len(pixel) == 3: pixel = (pixel[0],pixel[1],pixel[2],255)
+                except:
+                    if type(pixel) == int:
+                        pixel = (pixel,pixel,pixel,255)
+                    else:
+                        pixel = (0,0,0,255)
                 # ASCII
-                if type == "ascii":
+                if rentype == "ascii":
                     # STANDARD
                     if mode == "standard":
                         # NOPC
@@ -257,7 +263,7 @@ def ImageRenderer(image=str,type="ascii",mode=None,char=None,pc=False,method=Non
                             char = stringPrepper(getChar(charset,charIndex,True),pixelToHexColor(pixel),False,colorMode)
                     line += char
                 # BOX
-                elif type == "box":
+                elif rentype == "box":
                     # FOREGROUND
                     if mode == "foreground":
                         # MONO
@@ -317,7 +323,7 @@ if __name__ == "__main__":
     # Parse command line arguments
     parser = argparse.ArgumentParser(description="Image to text renderer")
     parser.add_argument("-image", help="Path to the image to render")
-    parser.add_argument("-type", default="ascii", help="Type of rendering (ascii or box)")
+    parser.add_argument("-rentype", default="ascii", help="Type of rendering (ascii or box)")
     parser.add_argument("-mode", help="Rendering mode (foreground, background, standard, color)")
     parser.add_argument("-char", help="Characters for rendering")
     parser.add_argument("-pc", action="store_true", help="Use PerChar mapping")
@@ -335,7 +341,7 @@ if __name__ == "__main__":
     returnValue = None
     mapping = {
         "image":args.image,
-        "type":args.type,
+        "rentype":args.rentype,
         "mode":args.mode,
         "char":args.char,
         "pc":args.pc,

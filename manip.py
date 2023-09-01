@@ -302,6 +302,18 @@ def stretchShapeYlp(texture, backgroundChars=[" "]):
             stretched_texture.append(botLine)
     return stretched_texture
 
+def stretchShape(texture=list,backgroundChars=[" "],axis="x",lp=True):
+    if axis.lower() == "x":
+        if lp == True:
+            return stretchShapeXlp(texture,backgroundChars)
+        else:
+            return stretchShapeX(texture,backgroundChars)
+    else:
+        if lp == True:
+            return stretchShapeYlp(texture,backgroundChars)
+        else:
+            return stretchShapeY(texture,backgroundChars)
+
 def fillSpriteObj(shapeObj,fillChar=str,bgChars=[" "]) -> None:
     xPos,yPos,tx = shapeObj.asTexture()
     tx = fillShape(normalizeTextureSplit(tx),bgChars,fillChar)

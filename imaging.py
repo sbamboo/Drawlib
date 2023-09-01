@@ -6,7 +6,7 @@ class asciiImage():
         # Req Arguments
         self.imagePath = imagePath
         # Presets
-        self.type = "ascii"
+        self.rentype = "ascii"
         self.texture = None
         # Set other arguments
         self.mode = mode
@@ -24,9 +24,9 @@ class asciiImage():
         self.strTxtMethod = strTxtMethod
     def _getTexture(self,asTexture=True):
         if self.strTxtMethod == True:
-            self.texture = _join_with_delimiter(ImageRenderer(image=self.imagePath,type=self.type,mode=self.mode,char=self.char,pc=self.pc,method=self.method,invert=self.invert,monochrome=self.monochrome,width=self.width,height=self.height,resampling=self.resampling,textureCodec=self.textureCodec, asTexture=asTexture,colorMode="pythonAnsi"),"\n")
+            self.texture = _join_with_delimiter(ImageRenderer(image=self.imagePath,rentype=self.rentype,mode=self.mode,char=self.char,pc=self.pc,method=self.method,invert=self.invert,monochrome=self.monochrome,width=self.width,height=self.height,resampling=self.resampling,textureCodec=self.textureCodec, asTexture=asTexture,colorMode="pythonAnsi"),"\n")
         else:
-            self.texture = ImageRenderer(image=self.imagePath,type=self.type,mode=self.mode,char=self.char,pc=self.pc,method=self.method,invert=self.invert,monochrome=self.monochrome,width=self.width,height=self.height,resampling=self.resampling,textureCodec=self.textureCodec, asTexture=asTexture,colorMode="pythonAnsi")
+            self.texture = ImageRenderer(image=self.imagePath,rentype=self.rentype,mode=self.mode,char=self.char,pc=self.pc,method=self.method,invert=self.invert,monochrome=self.monochrome,width=self.width,height=self.height,resampling=self.resampling,textureCodec=self.textureCodec, asTexture=asTexture,colorMode="pythonAnsi")
     def resize(self,width=int,height=int,resampling=None):
         if resampling != None: self.resampling = resampling
         self.width = width
@@ -55,7 +55,7 @@ class boxImage():
         # Req Arguments
         self.imagePath = imagePath
         # Presets
-        self.type = "box"
+        self.rentype = "box"
         self.texture = None
         # Set other arguments
         self.mode = mode
@@ -71,9 +71,9 @@ class boxImage():
         self.strTxtMethod = strTxtMethod
     def _getTexture(self,asTexture=True):
         if self.strTxtMethod == True:
-            self.texture = _join_with_delimiter(ImageRenderer(image=self.imagePath,type=self.type,mode=self.mode,char=self.char,monochrome=self.monochrome,width=self.width,height=self.height,resampling=self.resampling,textureCodec=self.textureCodec,method=self.method, asTexture=asTexture,colorMode="pythonAnsi"),"\n")
+            self.texture = _join_with_delimiter(ImageRenderer(image=self.imagePath,rentype=self.rentype,mode=self.mode,char=self.char,monochrome=self.monochrome,width=self.width,height=self.height,resampling=self.resampling,textureCodec=self.textureCodec,method=self.method, asTexture=asTexture,colorMode="pythonAnsi"),"\n")
         else:
-            self.texture = ImageRenderer(image=self.imagePath,type=self.type,mode=self.mode,char=self.char,monochrome=self.monochrome,width=self.width,height=self.height,resampling=self.resampling,textureCodec=self.textureCodec,method=self.method, asTexture=asTexture,colorMode="pythonAnsi")
+            self.texture = ImageRenderer(image=self.imagePath,rentype=self.rentype,mode=self.mode,char=self.char,monochrome=self.monochrome,width=self.width,height=self.height,resampling=self.resampling,textureCodec=self.textureCodec,method=self.method, asTexture=asTexture,colorMode="pythonAnsi")
     def resize(self,width=int,height=int,resampling=None):
         if resampling != None: self.resampling = resampling
         self.width = width

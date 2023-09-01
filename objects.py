@@ -55,6 +55,7 @@ class drawlibObj():
         sprite = self.splitPixelGroup.asSprite(backgroundChar)
         return sprite["xPos"],sprite["yPos"],sprite_to_texture(sprite)
     def asSplitPixelGroup(self):
+        if self.splitPixelGroup == None: self.make()
         return {"ch":self.splitPixelGroup.chars,"po":self.pixels}
     # Draw
     def draw(self):
@@ -296,7 +297,7 @@ class assetFileObj():
         return self
     
 class assetTexture():
-    def __init__(self, filepath, color=None,palette=stdpalette,autoGenerate=False,autoDraw=False):
+    def __init__(self, filepath, posov=None, color=None,palette=stdpalette,autoGenerate=False,autoDraw=False):
         self.filepath = filepath
         self.drawData = {
             "color": color,
@@ -306,6 +307,10 @@ class assetTexture():
         self.textureObj = None
         if autoGenerate == True: self.make()
         if autoDraw == True: self.draw()
+        if posov != None:
+            if isinstance(posov,tuple) != True:
+                raise TypeError("If defined, posov must be a tuple!")
+        self.posov = posov
     def generate(self):
         self.texture = load_texture(self.filepath)
     def objectify(self):
@@ -336,6 +341,9 @@ class assetTexture():
         cmpxPixelGroup = sprite_to_cmpxPixelGroup(sprite,exclusionChar)
         return cmpxPixelGroup_to_splitPixelGroup(cmpxPixelGroup)
     def draw(self,xPos=0,yPos=0):
+        if self.posov != None:
+            xPos = self.posov[0]
+            yPos = self.posov[1]
         if self.textureObj == None: self.make()
         self.textureObj.draw(xPos,yPos)
         return self
