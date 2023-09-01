@@ -146,7 +146,7 @@ def listTexture_to_sprite(texture=list,xPos=0,yPos=0):
     return {"xPos":xPos, "yPos":yPos, "tx":texture}
 
 def sprite_to_texture(sprite):
-    return "\n".join(sprite["tx"])
+    return sprite["xPos"],sprite["yPos"],"\n".join(sprite["tx"])
 
 def render_texture(xPos=0,yPos=0,texture=str,ansi=None):
     # Convert to sprite and render

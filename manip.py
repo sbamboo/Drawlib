@@ -1,4 +1,6 @@
+import math
 from .coreTypes import normalizeTextureSplit
+from .tools import getTopLeft,coordinateDifference,addDiffToCoords
 
 def fillShape(texture=list,backgroundChars=[" "],fillChar=str):
     nTex = []
@@ -332,3 +334,32 @@ def stretchSpriteObj(shapeObj,bgChars=[" "],axis="X",linePreserve=False) -> None
         else:
             tx = stretchShapeY(normalizeTextureSplit(tx),bgChars)
     shapeObj.sprite = {"xPos":xPos,"yPos":yPos,"tx":tx}
+
+def rotateSplitPixelGroup(splitPixelGroup, degrees, fixTopLeft=False):
+    # Get
+    characters = splitPixelGroup["ch"]
+    coordinates = splitPixelGroup["po"]
+    # Calculate the rotation angle in radians
+    radians = math.radians(degrees)
+    # Initialize empty lists for the rotated characters and coordinates
+    rotated_characters = []
+    rotated_coordinates = []
+    # Find the center of rotation (average of all coordinates)
+    cx = sum(x for x, _ in coordinates) / len(coordinates)
+    cy = sum(y for _, y in coordinates) / len(coordinates)
+    # Iterate through each pixel
+    for char, (x, y) in zip(characters, coordinates):
+        # Calculate the new coordinates after rotation
+        new_x = int((x - cx) * math.cos(radians) - (y - cy) * math.sin(radians) + cx)
+        new_y = int((x - cx) * math.sin(radians) + (y - cy) * math.cos(radians) + cy)
+        # Append the rotated character and coordinates to the lists
+        rotated_characters.append(char)
+        rotated_coordinates.append((new_x, new_y))
+    # Fix top left
+    if fixTopLeft == True:
+        oldTL = getTopLeft(splitPixelGroup["po"])
+        newTL = getTopLeft(rotated_coordinates)
+        diff = coordinateDifference(oldTL,newTL)
+        rotated_coordinates = addDiffToCoords(rotated_coordinates, diff[0], diff[1])
+    # Return
+    return {"ch":rotated_characters,"po":rotated_coordinates}

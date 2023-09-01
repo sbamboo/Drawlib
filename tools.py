@@ -38,3 +38,24 @@ def arrange_coordinates_to_rectangle(x1, y1, x2, y2, x3, y3, x4, y4):
     _x3, _y3 = arranged_points[2][0],arranged_points[3][1]
     _x4, _y4 = arranged_points[3][0],arranged_points[3][1]
     return _x1,_y1,_x2,_y2,_x3,_y3,_x4,_y4
+
+def getTopLeft(*points):
+    if not points:
+        return None  # Return None if no points are provided
+    x,y = [],[]
+    for point in points:
+        x.append(point[0])
+        y.append(point[1])
+    min_x = min(*x)
+    min_y = min(*y)
+    return (min_x, min_y)
+
+def coordinateDifference(refPoint, leftMost):
+    # Calculate the difference for X and Y
+    diff_x = refPoint[0] - leftMost[0]
+    diff_y = refPoint[1] - leftMost[1]
+    return (diff_x, diff_y)
+
+def addDiffToCoords(coordinates, xDiff, yDiff):
+    updated_coordinates = [(x + xDiff, y + yDiff) for x, y in coordinates]
+    return updated_coordinates

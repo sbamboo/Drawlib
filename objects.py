@@ -175,7 +175,7 @@ class rectangleObj2(drawlibObj):
         self.pixels.extend( beethams_line_algorithm(*p2,*p3) )
         self.pixels.extend( beethams_line_algorithm(*p3,*p4) )
         self.pixels.extend( beethams_line_algorithm(*p4,*p1) )
-        self.pixels = beethams_line_algorithm(**self.genData)
+        #self.pixels = beethams_line_algorithm(**self.genData)
 
 class circleObj(drawlibObj):
     def __init__(self, charset, xM, yM, r, color=None,palette=stdpalette,charFunc=baseGenerator,autoGenerate=False,autoDraw=False):
